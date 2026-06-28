@@ -1,10 +1,10 @@
 const FREE_LIMIT = 5;
-const APP_VERSION = '1.4.1 Mobile Hotfix';
+const APP_VERSION = '1.4.2 Polish';
 const DB_NAME = 'coursmemo-ai-media';
 const DB_VERSION = 1;
 const STORE_NAME = 'media';
 const STORAGE_KEY = 'coursmemo_courses_v1';
-const ONBOARDING_KEY = 'coursmemo_onboarding_v141_seen';
+const ONBOARDING_KEY = 'coursmemo_onboarding_v142_seen';
 const DEFAULT_THEMES = ['Danse', 'Formation', 'Sport', 'Musique', 'Coaching', 'École', 'Bien-être', 'Travail', 'Autre'];
 
 const state = {
@@ -25,10 +25,11 @@ const $$ = (selector) => document.querySelectorAll(selector);
 
 const els = {
   installBtn: $('#installBtn'),
-  installHeroBtn: $('#installHeroBtn'),
   heroNewBtn: $('#heroNewBtn'),
   courseCount: $('#courseCount'),
   themeCount: $('#themeCount'),
+  courseLabel: $('#courseLabel'),
+  themeLabel: $('#themeLabel'),
   themeChips: $('#themeChips'),
   courseList: $('#courseList'),
   newCourseBtn: $('#newCourseBtn'),
@@ -373,8 +374,12 @@ function renderList() {
 
 function renderStats() {
   const themes = new Set(state.courses.map((item) => item.theme || 'Autre'));
-  els.courseCount.textContent = state.courses.length;
-  els.themeCount.textContent = themes.size;
+  const courseTotal = state.courses.length;
+  const themeTotal = themes.size;
+  els.courseCount.textContent = courseTotal;
+  els.themeCount.textContent = themeTotal;
+  els.courseLabel.textContent = 'cours';
+  els.themeLabel.textContent = themeTotal > 1 ? 'thèmes' : 'thème';
 }
 
 function render() {
@@ -503,7 +508,7 @@ function isStandaloneMode() {
 }
 
 function installButtons() {
-  return [els.installBtn, els.installHeroBtn].filter(Boolean);
+  return [els.installBtn].filter(Boolean);
 }
 
 function openInstallHelp() {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coursmemo-ai-v1-4-1-mobile-hotfix-cache';
+const CACHE_NAME = 'coursmemo-ai-v1-4-2-polish-cache';
 const ASSETS = [
   './',
   './index.html',

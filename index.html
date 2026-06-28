@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#07111f" />
   <meta name="description" content="CoursMemo AI transforme tes cours audio/vidéo en transcriptions, notes classées et fiches prêtes à réviser." />
-  <title>CoursMemo AI — V1.4.1 Mobile Hotfix</title>
+  <title>CoursMemo AI — V1.4.2 Polish</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -27,17 +27,16 @@
 
       <section class="hero-card app-feel-card">
         <div>
-          <p class="pill">V1.4.1 gratuite · Mobile fix</p>
+          <p class="pill">Gratuit · Notes & transcription</p>
           <h2>Notes claires pour tes cours.</h2>
           <p>Classe tes cours, garde tes transcriptions et exporte tes notes en TXT. Le résumé IA et la fiche PDF seront disponibles dans Premium.</p>
         </div>
         <div class="hero-actions">
           <button class="primary-btn hero-new" id="heroNewBtn" type="button">+ Nouveau cours</button>
-          <button class="secondary-btn hero-install-btn" id="installHeroBtn" type="button">Installer l’app</button>
         </div>
         <div class="mini-stats" aria-label="Statistiques">
-          <span><strong id="courseCount">0</strong> cours</span>
-          <span><strong id="themeCount">0</strong> thèmes</span>
+          <span><strong id="courseCount">0</strong> <span id="courseLabel">cours</span></span>
+          <span><strong id="themeCount">0</strong> <span id="themeLabel">thèmes</span></span>
         </div>
       </section>
     </header>
@@ -159,7 +158,10 @@
             </div>
 
             <div class="mini-premium-box">
-              <strong>Premium :</strong> résumé IA et fiche PDF bientôt disponibles.
+              <div class="mini-premium-copy">
+                <strong>Premium</strong>
+                <span>Résumé IA et fiche PDF bientôt disponibles.</span>
+              </div>
               <button type="button" class="premium-link" data-tab="premium">Voir</button>
             </div>
           </form>
@@ -167,7 +169,7 @@
       </section>
 
       <section class="panel premium-panel app-screen" data-screen="premium">
-        <p class="eyebrow">Premium prévu</p>
+        <p class="eyebrow">Premium bientôt</p>
         <h2>Transforme ton cours en fiche prête à réviser.</h2>
         <p class="premium-lead">La base gratuite garde l’essentiel : transcription, classement, notes et export TXT. Premium transformera chaque cours en fiche prête à relire.</p>
 

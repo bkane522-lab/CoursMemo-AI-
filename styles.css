@@ -126,8 +126,7 @@ h3 { font-size: 1.02rem; letter-spacing: -0.03em; line-height: 1.3; }
   font-size: 0.92rem;
 }
 .hero-actions { display: grid; gap: 8px; }
-.hero-new, .hero-install-btn { min-height: 44px; width: 100%; }
-.hero-install-btn { background: rgba(255,255,255,0.09); }
+.hero-new { min-height: 44px; width: 100%; }
 
 .mini-stats { gap: 8px; grid-column: 1 / -1; }
 .mini-stats span {
@@ -368,7 +367,7 @@ button:active { transform: scale(0.98); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   border: 1px solid rgba(255, 209, 102, 0.25);
   background: linear-gradient(135deg, rgba(255, 209, 102, 0.10), rgba(155, 124, 255, 0.08));
   border-radius: 18px;
@@ -377,7 +376,21 @@ button:active { transform: scale(0.98); }
   line-height: 1.32;
   font-weight: 700;
 }
-.mini-premium-box strong { color: #fff4d0; }
+.mini-premium-copy {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mini-premium-copy strong {
+  color: #fff4d0;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.mini-premium-copy span {
+  min-width: 0;
+  overflow-wrap: normal;
+}
 .premium-link {
   min-height: 33px;
   padding: 7px 12px;
@@ -507,7 +520,7 @@ button:active { transform: scale(0.98); }
   .app-feel-card, .panel { border-radius: 20px; padding: 10px; }
   .pill { padding: 5px 8px; margin-bottom: 6px; font-size: 0.68rem; }
   .hero-card p:not(.pill) { font-size: 0.84rem; margin-top: 4px; }
-  .hero-new, .hero-install-btn { min-height: 42px; }
+  .hero-new { min-height: 42px; }
   .mini-stats span { padding: 6px 8px; font-size: 0.74rem; }
   .notice { font-size: 0.80rem; padding: 8px 10px; margin: 5px 0 8px; border-radius: 14px; }
   .section-tabs { top: max(5px, env(safe-area-inset-top)); margin-bottom: 9px; }
@@ -541,7 +554,7 @@ button:active { transform: scale(0.98); }
 }
 
 
-/* V1.4.1 — Mobile overflow hotfix */
+/* V1.4.2 — Polish + Mobile overflow protection */
 html,
 body {
   width: 100%;
@@ -562,6 +575,8 @@ form,
 .panel-title-row > *,
 .file-drop > span:last-child,
 .mini-premium-box > *,
+.mini-premium-copy,
+.mini-premium-copy span,
 .premium-grid article,
 .modal-card {
   min-width: 0;
@@ -590,7 +605,6 @@ textarea,
 select,
 .course-card strong,
 .course-meta,
-.mini-premium-box,
 .premium-grid span,
 .notice,
 .hero-card p,
@@ -648,6 +662,11 @@ select,
   .mini-premium-box {
     align-items: flex-start;
   }
+
+  .mini-premium-copy {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
 }
 
 @media (max-width: 360px) {
@@ -661,6 +680,10 @@ select,
   }
 
   .mini-premium-box {
+    display: grid;
+  }
+
+  .mini-premium-copy {
     display: grid;
   }
 

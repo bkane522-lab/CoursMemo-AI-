@@ -1,15 +1,15 @@
-# CoursMemo AI — V1.4.1 Mobile Hotfix
+# CoursMemo AI — V1.4.2 Polish
 
-Version corrective basée sur V1.4 Clean UX.
+Version de finition basée sur V1.4.1 Mobile Hotfix.
 
-## Correctifs
+## Améliorations
 
-- Correction du débordement horizontal sur mobile.
-- Protection contre le zoom automatique des champs sur certains navigateurs mobiles.
-- Formulaire Fiche plus stable sur petit écran.
-- Zone Import audio / vidéo corrigée pour ne plus couper le texte.
-- Boutons Supprimer / Enregistrer adaptés en pleine largeur sur mobile.
-- Cache PWA mis à jour en V1.4.1.
+- Badge public simplifié : “Gratuit · Notes & transcription”.
+- Suppression du double bouton d’installation dans la carte d’accueil.
+- Correction du libellé singulier/pluriel : “1 thème” au lieu de “1 thèmes”.
+- Bloc Premium de la fiche corrigé pour éviter le mot coupé sur mobile.
+- Page Premium légèrement reformulée avec “Premium bientôt”.
+- Cache PWA mis à jour en V1.4.2.
 
 ## Fonctionnalités conservées
 
