@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#101828" />
+  <title>CoursMemo AI</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <nav class="topbar" aria-label="Navigation principale">
+        <div class="brand">
+          <div class="brand-logo" aria-hidden="true">CM</div>
+          <div>
+            <p class="eyebrow">CoursMemo AI</p>
+            <h1>Transforme tes cours en notes claires.</h1>
+          </div>
+        </div>
+        <button class="ghost-btn" id="installBtn" hidden>Installer</button>
+      </nav>
+
+      <section class="hero-card">
+        <div>
+          <p class="pill">V1 gratuite · Transcription & classement</p>
+          <h2>Audio, vidéo, thème, notes personnelles.</h2>
+          <p class="hero-text">
+            Classe tes cours, conserve tes transcriptions et prépare ton suivi.
+            Les résumés intelligents et PDF sont prévus pour la version Premium.
+          </p>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span id="courseCount">0</span>
+            <small>cours</small>
+          </div>
+          <div class="stat-card">
+            <span id="themeCount">0</span>
+            <small>thèmes</small>
+          </div>
+        </div>
+      </section>
+    </header>
+
+    <main>
+      <section class="notice consent-box">
+        <strong>Important :</strong> enregistre seulement un cours si tu as l'autorisation des personnes concernées.
+        L'app V1 stocke tes données localement sur ton appareil.
+      </section>
+
+      <section class="layout">
+        <aside class="panel left-panel">
+          <div class="panel-title-row">
+            <div>
+              <p class="eyebrow">Organisation</p>
+              <h2>Mes cours</h2>
+            </div>
+            <button class="primary-btn small" id="newCourseBtn">+ Nouveau</button>
+          </div>
+
+          <div class="search-row">
+            <input id="searchInput" type="search" placeholder="Rechercher un cours..." autocomplete="off" />
+          </div>
+
+          <div class="theme-chips" id="themeChips" aria-label="Filtres par thème"></div>
+
+          <div class="course-list" id="courseList"></div>
+        </aside>
+
+        <section class="panel editor-panel">
+          <form id="courseForm">
+            <div class="panel-title-row">
+              <div>
+                <p class="eyebrow">Fiche cours</p>
+                <h2 id="editorTitle">Nouveau cours</h2>
+              </div>
+              <div class="actions-inline">
+                <button type="button" class="ghost-btn small" id="deleteBtn">Supprimer</button>
+                <button type="submit" class="primary-btn small">Enregistrer</button>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                Titre du cours
+                <input id="titleInput" type="text" placeholder="Ex : Cours Kizomba - guidage" required />
+              </label>
+
+              <label>
+                Thème
+                <select id="themeInput">
+                  <option>Danse</option>
+                  <option>Formation</option>
+                  <option>Sport</option>
+                  <option>Musique</option>
+                  <option>Coaching</option>
+                  <option>École</option>
+                  <option>Bien-être</option>
+                  <option>Travail</option>
+                  <option>Autre</option>
+                </select>
+              </label>
+
+              <label>
+                Date
+                <input id="dateInput" type="date" />
+              </label>
+
+              <label>
+                Prof / coach / formateur
+                <input id="teacherInput" type="text" placeholder="Nom facultatif" />
+              </label>
+            </div>
+
+            <label class="file-drop" for="mediaInput">
+              <span class="file-icon">🎧</span>
+              <span>
+                <strong>Importer un audio ou une vidéo</strong>
+                <small id="fileLabel">MP3, WAV, M4A, MP4, MOV — stockage local sur l'appareil.</small>
+              </span>
+              <input id="mediaInput" type="file" accept="audio/*,video/*" />
+            </label>
+
+            <div id="mediaPreview" class="media-preview" hidden></div>
+
+            <div class="editor-tools">
+              <button type="button" class="secondary-btn" id="speechBtn">Dictée micro bêta</button>
+              <button type="button" class="secondary-btn" id="exportTxtBtn">Exporter TXT</button>
+              <button type="button" class="premium-btn" data-premium="summary">Résumé IA Premium</button>
+              <button type="button" class="premium-btn" data-premium="pdf">PDF Premium</button>
+            </div>
+
+            <label>
+              Transcription / texte du cours
+              <textarea id="transcriptInput" rows="9" placeholder="Colle ici la transcription, ou utilise la dictée micro si ton navigateur la prend en charge."></textarea>
+            </label>
+
+            <label>
+              Notes personnelles
+              <textarea id="notesInput" rows="6" placeholder="Ex : corrections du prof, mouvements à revoir, objectifs du prochain cours..."></textarea>
+            </label>
+
+            <div class="premium-preview">
+              <div>
+                <p class="eyebrow">Premium prévu</p>
+                <h3>Résumé intelligent, fiche PDF, points à retenir.</h3>
+                <p>
+                  Cette V1 prépare le produit. Les fonctions IA seront à brancher ensuite avec un backend sécurisé.
+                </p>
+              </div>
+              <button type="button" class="premium-btn" data-premium="all">Voir Premium</button>
+            </div>
+          </form>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="premiumDialog" class="modal">
+    <div class="modal-card">
+      <button class="close-btn" id="closePremium" aria-label="Fermer">×</button>
+      <p class="pill">CoursMemo AI Premium</p>
+      <h2>Les fonctions fortes restent Premium.</h2>
+      <p>
+        Résumé intelligent, fiche de révision PDF, corrections du prof,
+        objectifs du prochain cours, traduction et historique avancé.
+      </p>
+      <ul>
+        <li>Résumé IA automatique du cours</li>
+        <li>Points clés à retenir</li>
+        <li>PDF propre prêt à relire</li>
+        <li>Classement avancé par thème, date, prof et niveau</li>
+      </ul>
+      <button class="primary-btn" id="premiumOkBtn">Compris</button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
