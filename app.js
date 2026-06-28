@@ -1,10 +1,10 @@
 const FREE_LIMIT = 5;
-const APP_VERSION = '1.4 Clean UX';
+const APP_VERSION = '1.4.1 Mobile Hotfix';
 const DB_NAME = 'coursmemo-ai-media';
 const DB_VERSION = 1;
 const STORE_NAME = 'media';
 const STORAGE_KEY = 'coursmemo_courses_v1';
-const ONBOARDING_KEY = 'coursmemo_onboarding_v14_seen';
+const ONBOARDING_KEY = 'coursmemo_onboarding_v141_seen';
 const DEFAULT_THEMES = ['Danse', 'Formation', 'Sport', 'Musique', 'Coaching', 'École', 'Bien-être', 'Travail', 'Autre'];
 
 const state = {

@@ -539,3 +539,132 @@ button:active { transform: scale(0.98); }
   .action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .action-grid button { font-size: 0.84rem; }
 }
+
+
+/* V1.4.1 — Mobile overflow hotfix */
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.app-shell,
+.app-header,
+main,
+.layout,
+.panel,
+.app-screen,
+form,
+.brand-copy,
+.panel-title-row > *,
+.file-drop > span:last-child,
+.mini-premium-box > *,
+.premium-grid article,
+.modal-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+img,
+video,
+audio,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+input,
+textarea,
+select,
+button {
+  max-width: 100%;
+}
+
+.file-drop strong,
+.file-drop small,
+input,
+textarea,
+select,
+.course-card strong,
+.course-meta,
+.mini-premium-box,
+.premium-grid span,
+.notice,
+.hero-card p,
+.modal-card p,
+.modal-card li {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+@media (max-width: 620px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  .editor-heading {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .editor-heading h2 {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .actions-inline {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .actions-inline .small {
+    flex: 1 1 0;
+  }
+
+  .file-drop {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .file-drop small {
+    display: block;
+  }
+
+  .hero-actions,
+  .mini-stats,
+  .section-tabs,
+  .panel,
+  .notice,
+  .app-feel-card {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .mini-premium-box {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 360px) {
+  .topbar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .install-btn {
+    width: 100%;
+  }
+
+  .mini-premium-box {
+    display: grid;
+  }
+
+  .premium-link {
+    width: 100%;
+  }
+}

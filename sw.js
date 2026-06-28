@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coursmemo-ai-v1-4-clean-ux-cache';
+const CACHE_NAME = 'coursmemo-ai-v1-4-1-mobile-hotfix-cache';
 const ASSETS = [
   './',
   './index.html',
