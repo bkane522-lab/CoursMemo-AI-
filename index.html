@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#07111f" />
   <meta name="description" content="CoursMemo AI transforme tes cours audio/vidéo en transcriptions, notes classées et fiches prêtes à réviser." />
-  <title>CoursMemo AI — V1.3 App Feel</title>
+  <title>CoursMemo AI — V1.4 Clean UX</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -22,16 +22,19 @@
             <h1>Classe. Transcris. Révise.</h1>
           </div>
         </div>
-        <button class="ghost-btn install-btn" id="installBtn" hidden>Installer</button>
+        <button class="ghost-btn install-btn" id="installBtn" type="button">Installer</button>
       </nav>
 
       <section class="hero-card app-feel-card">
         <div>
-          <p class="pill">V1.3 gratuite · App feel</p>
+          <p class="pill">V1.4 gratuite · Clean UX</p>
           <h2>Notes claires pour tes cours.</h2>
-          <p>Base gratuite : classement, transcription, notes et export TXT. Résumé IA et PDF restent Premium.</p>
+          <p>Classe tes cours, garde tes transcriptions et exporte tes notes en TXT. Le résumé IA et la fiche PDF seront disponibles dans Premium.</p>
         </div>
-        <button class="primary-btn hero-new" id="heroNewBtn" type="button">+ Nouveau cours</button>
+        <div class="hero-actions">
+          <button class="primary-btn hero-new" id="heroNewBtn" type="button">+ Nouveau cours</button>
+          <button class="secondary-btn hero-install-btn" id="installHeroBtn" type="button">Installer l’app</button>
+        </div>
         <div class="mini-stats" aria-label="Statistiques">
           <span><strong id="courseCount">0</strong> cours</span>
           <span><strong id="themeCount">0</strong> thèmes</span>
@@ -41,7 +44,7 @@
 
     <main>
       <section class="notice consent-box">
-        <span>Important :</span> enregistre seulement avec autorisation. Les données V1 restent stockées localement sur ton appareil.
+        <span>Important :</span> enregistre seulement avec autorisation. Tes données restent stockées localement sur ton appareil.
       </section>
 
       <nav class="section-tabs" aria-label="Sections de l'application">
@@ -125,7 +128,7 @@
             </label>
 
             <details class="more-details">
-              <summary>Options : date, prof, thème perso</summary>
+              <summary>Options facultatives : date, prof, thème perso</summary>
               <div class="form-grid details-form">
                 <label>
                   Date
@@ -156,7 +159,7 @@
             </div>
 
             <div class="mini-premium-box">
-              <strong>Premium :</strong> transforme le cours en fiche prête à réviser.
+              <strong>Premium :</strong> résumé IA et fiche PDF bientôt disponibles.
               <button type="button" class="premium-link" data-tab="premium">Voir</button>
             </div>
           </form>
@@ -166,12 +169,12 @@
       <section class="panel premium-panel app-screen" data-screen="premium">
         <p class="eyebrow">Premium prévu</p>
         <h2>Transforme ton cours en fiche prête à réviser.</h2>
-        <p class="premium-lead">La V1.3 garde une base gratuite simple. Le Premium ajoute la compréhension intelligente : résumé, PDF, points clés, corrections et suivi.</p>
+        <p class="premium-lead">La base gratuite garde l’essentiel : transcription, classement, notes et export TXT. Premium transformera chaque cours en fiche prête à relire.</p>
 
         <div class="premium-grid">
           <article>
             <strong>Résumé IA</strong>
-            <span>Le cours résumé en points simples.</span>
+            <span>Le cours résumé en quelques points clairs.</span>
           </article>
           <article>
             <strong>Fiche PDF</strong>
@@ -183,7 +186,7 @@
           </article>
           <article>
             <strong>Suivi avancé</strong>
-            <span>Classement par thème, prof, date et progression.</span>
+            <span>Suivi par thème, prof, date et progression.</span>
           </article>
         </div>
 
@@ -202,7 +205,7 @@
         <article><strong>2</strong><span>Ajoute audio, transcription ou notes</span></article>
         <article><strong>3</strong><span>Classe par thème et révise</span></article>
       </div>
-      <p class="modal-small">Résumé IA et PDF seront branchés plus tard dans le Premium avec un backend sécurisé.</p>
+      <p class="modal-small">Le résumé IA et la fiche PDF seront disponibles plus tard dans Premium avec un backend sécurisé.</p>
       <button class="primary-btn" id="startOnboardingBtn">Commencer</button>
     </div>
   </dialog>
@@ -211,7 +214,7 @@
     <div class="modal-card">
       <button class="close-btn" id="closePremium" aria-label="Fermer">×</button>
       <p class="pill">CoursMemo AI Premium</p>
-      <h2>Premium sera branché avec un backend sécurisé.</h2>
+      <h2>Premium bientôt disponible avec un backend sécurisé.</h2>
       <p>
         Résumé intelligent, fiche PDF, points clés, corrections du prof, objectifs du prochain cours,
         traduction et historique avancé.
@@ -223,6 +226,20 @@
         <li>Suivi des points à revoir et de la progression</li>
       </ul>
       <button class="primary-btn" id="premiumOkBtn">Compris</button>
+    </div>
+  </dialog>
+
+  <dialog id="installDialog" class="modal">
+    <div class="modal-card">
+      <button class="close-btn" id="closeInstall" aria-label="Fermer">×</button>
+      <p class="pill">Installer l’app</p>
+      <h2>Ajoute CoursMemo AI à ton écran d’accueil.</h2>
+      <p>Si le bouton d’installation automatique n’apparaît pas, utilise le menu de ton navigateur puis choisis “Ajouter à l’écran d’accueil”.</p>
+      <ul>
+        <li>Android : menu du navigateur → Ajouter à l’écran d’accueil</li>
+        <li>iPhone : partager → Sur l’écran d’accueil</li>
+      </ul>
+      <button class="primary-btn" id="installOkBtn">Compris</button>
     </div>
   </dialog>
 

@@ -1,28 +1,33 @@
-# CoursMemo AI — V1.3 App Feel
+# CoursMemo AI V1.4 — Clean UX
 
-Version PWA mobile-first de CoursMemo AI.
+V1.4 de CoursMemo AI, orientée confort mobile et textes plus professionnels.
 
-## Inclus
+## Ce qui change
 
-- Design plus compact, style vraie app mobile
-- Onglets Cours / Fiche / Premium collants sur mobile
-- Accueil raccourci
-- Fiche plus directe : titre, thème, import, transcription, notes
-- Options repliables : date, prof, thème personnalisé
-- Onboarding au premier lancement
-- Mode danse / astuce selon le thème
-- Import audio/vidéo stocké localement avec IndexedDB
-- Sauvegarde des cours dans localStorage
-- Export TXT gratuit
-- Résumé IA et PDF gardés côté Premium prévu
-- Manifest PWA + service worker V1.3
+- Textes moins techniques pour l’utilisateur final.
+- Message de confidentialité simplifié : données stockées localement sur l’appareil.
+- Bouton `+ Nouveau cours` plus direct : ouverture de la fiche vide.
+- Bouton `Installer l’app` visible, avec aide si le navigateur ne déclenche pas l’installation PWA automatiquement.
+- Page Premium plus claire et plus vendeuse.
+- Onboarding reformulé.
+- Cache PWA mis à jour en V1.4.
 
-## Limites honnêtes
+## Fonctions V1 gratuites
 
-Cette V1.3 ne contient pas encore de transcription IA automatique côté serveur.
-Les fonctions IA Premium sont préparées dans l'interface mais non branchées.
+- Classement par thème.
+- Création et édition de cours.
+- Import audio / vidéo stocké localement.
+- Transcription manuelle ou dictée micro selon navigateur.
+- Notes personnelles.
+- Export TXT.
 
-## Déploiement
+## Premium prévu
 
-Remplacer les fichiers du projet Vercel par ceux de ce dossier, puis redéployer.
-Si l'ancienne version apparaît encore, vider le cache du navigateur ou recharger deux fois.
+- Résumé IA.
+- Fiche PDF.
+- Points clés et corrections.
+- Suivi avancé par thème, prof, date et progression.
+
+## Important
+
+Cette V1.4 ne branche pas encore de backend IA. Le résumé IA et la fiche PDF restent prévus pour une future version Premium avec backend sécurisé.

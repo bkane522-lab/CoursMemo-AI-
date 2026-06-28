@@ -1,7 +1,7 @@
 {
   "name": "CoursMemo AI",
   "short_name": "CoursMemo",
-  "description": "CoursMemo AI classe tes cours audio/vidéo, garde les transcriptions et prépare les fonctions Premium.",
+  "description": "CoursMemo AI classe tes cours, garde tes transcriptions et prépare le résumé IA et les fiches PDF Premium.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

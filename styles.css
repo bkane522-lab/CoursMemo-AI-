@@ -125,7 +125,9 @@ h3 { font-size: 1.02rem; letter-spacing: -0.03em; line-height: 1.3; }
   max-width: 660px;
   font-size: 0.92rem;
 }
-.hero-new { min-height: 44px; }
+.hero-actions { display: grid; gap: 8px; }
+.hero-new, .hero-install-btn { min-height: 44px; width: 100%; }
+.hero-install-btn { background: rgba(255,255,255,0.09); }
 
 .mini-stats { gap: 8px; grid-column: 1 / -1; }
 .mini-stats span {
@@ -478,7 +480,7 @@ button:active { transform: scale(0.98); }
 
 @media (max-width: 900px) {
   .app-feel-card { grid-template-columns: 1fr; }
-  .hero-new { width: 100%; }
+  .hero-actions { grid-template-columns: 1fr; }
   .layout { grid-template-columns: 1fr; }
   .library-panel { position: static; }
   .course-list { max-height: none; }
@@ -502,10 +504,10 @@ button:active { transform: scale(0.98); }
   .eyebrow { font-size: 0.62rem; margin-bottom: 2px; }
   h1 { font-size: 1.20rem; }
   h2 { font-size: 1.16rem; }
-  .app-feel-card, .panel { border-radius: 20px; padding: 11px; }
+  .app-feel-card, .panel { border-radius: 20px; padding: 10px; }
   .pill { padding: 5px 8px; margin-bottom: 6px; font-size: 0.68rem; }
   .hero-card p:not(.pill) { font-size: 0.84rem; margin-top: 4px; }
-  .hero-new { min-height: 42px; }
+  .hero-new, .hero-install-btn { min-height: 42px; }
   .mini-stats span { padding: 6px 8px; font-size: 0.74rem; }
   .notice { font-size: 0.80rem; padding: 8px 10px; margin: 5px 0 8px; border-radius: 14px; }
   .section-tabs { top: max(5px, env(safe-area-inset-top)); margin-bottom: 9px; }

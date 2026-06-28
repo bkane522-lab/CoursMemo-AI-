@@ -1,10 +1,10 @@
 const FREE_LIMIT = 5;
-const APP_VERSION = '1.3 App Feel';
+const APP_VERSION = '1.4 Clean UX';
 const DB_NAME = 'coursmemo-ai-media';
 const DB_VERSION = 1;
 const STORE_NAME = 'media';
 const STORAGE_KEY = 'coursmemo_courses_v1';
-const ONBOARDING_KEY = 'coursmemo_onboarding_v13_seen';
+const ONBOARDING_KEY = 'coursmemo_onboarding_v14_seen';
 const DEFAULT_THEMES = ['Danse', 'Formation', 'Sport', 'Musique', 'Coaching', 'École', 'Bien-être', 'Travail', 'Autre'];
 
 const state = {
@@ -25,6 +25,7 @@ const $$ = (selector) => document.querySelectorAll(selector);
 
 const els = {
   installBtn: $('#installBtn'),
+  installHeroBtn: $('#installHeroBtn'),
   heroNewBtn: $('#heroNewBtn'),
   courseCount: $('#courseCount'),
   themeCount: $('#themeCount'),
@@ -49,6 +50,9 @@ const els = {
   premiumDialog: $('#premiumDialog'),
   closePremium: $('#closePremium'),
   premiumOkBtn: $('#premiumOkBtn'),
+  installDialog: $('#installDialog'),
+  closeInstall: $('#closeInstall'),
+  installOkBtn: $('#installOkBtn'),
   onboardingDialog: $('#onboardingDialog'),
   closeOnboarding: $('#closeOnboarding'),
   startOnboardingBtn: $('#startOnboardingBtn'),
@@ -245,10 +249,13 @@ function newCourse() {
   els.themeInput.value = 'Danse';
   els.customThemeInput.value = '';
   els.fileLabel.textContent = 'MP3, WAV, M4A, MP4, MOV — stockage local sur l\'appareil.';
+  if (els.mediaInput) els.mediaInput.value = '';
   resetMediaPreview();
   updateThemeHelper();
   render();
   activateTab('editor');
+  window.setTimeout(() => els.titleInput.focus({ preventScroll: true }), 350);
+  showToast('Nouvelle fiche prête.');
 }
 
 async function saveCurrentCourse(event) {
@@ -491,19 +498,53 @@ function registerServiceWorker() {
   }
 }
 
+function isStandaloneMode() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function installButtons() {
+  return [els.installBtn, els.installHeroBtn].filter(Boolean);
+}
+
+function openInstallHelp() {
+  if (typeof els.installDialog.showModal === 'function') els.installDialog.showModal();
+  else alert('Pour installer : menu du navigateur puis Ajouter à l’écran d’accueil.');
+}
+
 function setupInstallPrompt() {
+  installButtons().forEach((btn) => {
+    btn.hidden = isStandaloneMode();
+  });
+
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
     state.deferredPrompt = event;
-    els.installBtn.hidden = false;
+    installButtons().forEach((btn) => { btn.hidden = false; });
   });
 
-  els.installBtn.addEventListener('click', async () => {
-    if (!state.deferredPrompt) return;
-    state.deferredPrompt.prompt();
-    await state.deferredPrompt.userChoice;
+  window.addEventListener('appinstalled', () => {
     state.deferredPrompt = null;
-    els.installBtn.hidden = true;
+    installButtons().forEach((btn) => { btn.hidden = true; });
+    showToast('Application installée.');
+  });
+
+  installButtons().forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (isStandaloneMode()) {
+        showToast('CoursMemo AI est déjà installée.');
+        btn.hidden = true;
+        return;
+      }
+
+      if (!state.deferredPrompt) {
+        openInstallHelp();
+        return;
+      }
+
+      state.deferredPrompt.prompt();
+      await state.deferredPrompt.userChoice;
+      state.deferredPrompt = null;
+    });
   });
 }
 
@@ -534,6 +575,8 @@ function bindEvents() {
   $$('[data-premium]').forEach((btn) => btn.addEventListener('click', openPremium));
   els.closePremium.addEventListener('click', () => els.premiumDialog.close());
   els.premiumOkBtn.addEventListener('click', () => els.premiumDialog.close());
+  els.closeInstall.addEventListener('click', () => els.installDialog.close());
+  els.installOkBtn.addEventListener('click', () => els.installDialog.close());
   els.closeOnboarding.addEventListener('click', closeOnboarding);
   els.startOnboardingBtn.addEventListener('click', closeOnboarding);
 }
@@ -575,7 +618,7 @@ function hydrateFirstCourse() {
   els.teacherInput.value = first.teacher || '';
   els.transcriptInput.value = first.transcript || '';
   els.notesInput.value = first.notes || '';
-  els.fileLabel.textContent = first.fileName ? `${first.fileName} — fichier déjà enregistré` : 'MP3, WAV, M4A, MP4, MOV — stockage local sur l\'appareil.';
+  els.fileLabel.textContent = first.fileName ? `${first.fileName} — fichier déjà enregistré` : 'MP3, WAV, M4A, MP4, MOV — stockage local.';
   updateThemeHelper();
 }
 
