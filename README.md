@@ -1,37 +1,25 @@
-# CoursMemo AI — V1.1 Mobile Compact
+# CoursMemo AI — V1.2 Flow Mobile
 
-Prototype PWA optimisé mobile.
+Version PWA mobile-first de CoursMemo AI.
 
-## Nouveautés V1.1
-- Accueil plus court et plus direct.
-- Bouton `+ Nouveau cours` visible dès le haut de page.
-- Cartes plus compactes sur téléphone.
-- Formulaire plus léger.
-- Boutons d’action en grille compacte.
-- Bloc Premium mieux présenté : résumé IA, PDF, points à retenir, suivi de progression.
-- Cache PWA mis à jour : `coursmemo-ai-v1-1-mobile-compact-cache`.
+## Inclus
 
-## Fonctionnalités V1 gratuite
-- Création de fiches de cours.
-- Classement par thème.
-- Recherche locale.
-- Import audio/vidéo stocké localement sur l'appareil.
-- Transcription manuelle.
-- Dictée micro bêta selon navigateur.
-- Notes personnelles.
-- Export TXT.
+- Interface plus fluide sur téléphone avec onglets : Cours / Fiche / Premium
+- Classement par thème
+- Possibilité de créer un thème personnalisé
+- Import audio / vidéo en stockage local
+- Transcription manuelle ou dictée micro selon navigateur
+- Notes personnelles
+- Export TXT
+- Premium préparé : résumé IA, PDF, points à retenir, suivi de progression
+- Manifest PWA + service worker
 
-## Premium prévu
-- Résumé IA automatique.
-- Fiche PDF.
-- Points clés à retenir.
-- Corrections du prof.
-- Objectifs du prochain cours.
-- Classement avancé.
-- Historique avancé.
+## Limites honnêtes
 
-## Important
-Cette V1.1 ne fait pas encore de transcription IA automatique serveur. Elle prépare la base produit et garde les fonctions de compréhension côté Premium.
+Cette version ne contient pas encore de transcription IA serveur ni de génération PDF réelle. Les fonctions IA et PDF restent volontairement préparées côté Premium.
 
-## Déploiement Vercel
-Remplacer les fichiers du projet par ceux de ce dossier puis redéployer.
+## Déploiement
+
+Déposer tous les fichiers à la racine du projet Vercel/GitHub Pages/Netlify, puis redéployer.
+
+Si l'ancienne version reste visible à cause du cache PWA, recharger deux fois la page ou vider le cache du site.

@@ -1,14 +1,16 @@
 const FREE_LIMIT = 5;
-const APP_VERSION = '1.1 Mobile Compact';
+const APP_VERSION = '1.2 Flow Mobile';
 const DB_NAME = 'coursmemo-ai-media';
 const DB_VERSION = 1;
 const STORE_NAME = 'media';
+const DEFAULT_THEMES = ['Danse', 'Formation', 'Sport', 'Musique', 'Coaching', 'École', 'Bien-être', 'Travail', 'Autre'];
 
 const state = {
   courses: [],
   currentId: null,
   selectedTheme: 'Tous',
   search: '',
+  activeTab: 'library',
   deferredPrompt: null,
   selectedFile: null,
   mediaUrl: null,
@@ -17,6 +19,7 @@ const state = {
 };
 
 const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => document.querySelectorAll(selector);
 
 const els = {
   installBtn: $('#installBtn'),
@@ -31,6 +34,7 @@ const els = {
   editorTitle: $('#editorTitle'),
   titleInput: $('#titleInput'),
   themeInput: $('#themeInput'),
+  customThemeInput: $('#customThemeInput'),
   dateInput: $('#dateInput'),
   teacherInput: $('#teacherInput'),
   mediaInput: $('#mediaInput'),
@@ -40,10 +44,10 @@ const els = {
   notesInput: $('#notesInput'),
   deleteBtn: $('#deleteBtn'),
   speechBtn: $('#speechBtn'),
-  exportTxtBtn: $('#exportTxtBtn'),
   premiumDialog: $('#premiumDialog'),
   closePremium: $('#closePremium'),
   premiumOkBtn: $('#premiumOkBtn'),
+  exportTxtBtn: $('#exportTxtBtn'),
   toast: $('#toast'),
 };
 
@@ -77,6 +81,15 @@ function saveCourses() {
 function loadCourses() {
   const raw = localStorage.getItem('coursmemo_courses_v1');
   state.courses = raw ? JSON.parse(raw) : [];
+}
+
+function activateTab(tabName) {
+  state.activeTab = tabName;
+  $$('.tab-btn').forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === tabName));
+  $$('.app-screen').forEach((screen) => screen.classList.toggle('active', screen.dataset.screen === tabName));
+  if (window.matchMedia('(max-width: 760px)').matches) {
+    document.querySelector('.section-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function openDb() {
@@ -128,12 +141,17 @@ async function deleteMedia(id) {
   db.close();
 }
 
+function getThemeFromForm() {
+  const customTheme = els.customThemeInput.value.trim();
+  return customTheme || els.themeInput.value || 'Autre';
+}
+
 function courseFromForm(existing = {}) {
   const now = new Date().toISOString();
   return {
     id: existing.id || uid(),
     title: els.titleInput.value.trim(),
-    theme: els.themeInput.value,
+    theme: getThemeFromForm(),
     date: els.dateInput.value || today(),
     teacher: els.teacherInput.value.trim(),
     transcript: els.transcriptInput.value.trim(),
@@ -183,7 +201,15 @@ async function loadCourse(id) {
   state.selectedFile = null;
   els.editorTitle.textContent = course.title || 'Cours sans titre';
   els.titleInput.value = course.title || '';
-  els.themeInput.value = course.theme || 'Autre';
+
+  if (DEFAULT_THEMES.includes(course.theme)) {
+    els.themeInput.value = course.theme || 'Autre';
+    els.customThemeInput.value = '';
+  } else {
+    els.themeInput.value = 'Autre';
+    els.customThemeInput.value = course.theme || '';
+  }
+
   els.dateInput.value = course.date || today();
   els.teacherInput.value = course.teacher || '';
   els.transcriptInput.value = course.transcript || '';
@@ -199,6 +225,7 @@ async function loadCourse(id) {
     }
   }
   render();
+  activateTab('editor');
 }
 
 function newCourse() {
@@ -208,9 +235,11 @@ function newCourse() {
   els.form.reset();
   els.dateInput.value = today();
   els.themeInput.value = 'Danse';
+  els.customThemeInput.value = '';
   els.fileLabel.textContent = 'MP3, WAV, M4A, MP4, MOV — stockage local sur l\'appareil.';
   resetMediaPreview();
   render();
+  activateTab('editor');
 }
 
 async function saveCurrentCourse(event) {
@@ -258,11 +287,13 @@ async function deleteCurrentCourse() {
   const course = state.courses.find((item) => item.id === state.currentId);
   const ok = window.confirm(`Supprimer "${course?.title || 'ce cours'}" ?`);
   if (!ok) return;
+
   state.courses = state.courses.filter((item) => item.id !== state.currentId);
   await deleteMedia(state.currentId).catch(() => undefined);
   saveCourses();
   showToast('Cours supprimé.');
   newCourse();
+  activateTab('library');
 }
 
 function getThemes() {
@@ -342,7 +373,7 @@ function exportTxt() {
   }
 
   const content = [
-    `CoursMemo AI — ${APP_VERSION}`, 
+    `CoursMemo AI — ${APP_VERSION}`,
     `Titre : ${course.title || 'Sans titre'}`,
     `Thème : ${course.theme}`,
     `Date : ${course.date}`,
@@ -393,7 +424,7 @@ function setupSpeechRecognition() {
   state.recognition.onerror = () => showToast('Erreur micro ou permission refusée.');
   state.recognition.onend = () => {
     state.isListening = false;
-    els.speechBtn.textContent = 'Dictée micro bêta';
+    els.speechBtn.textContent = 'Dictée';
     els.transcriptInput.dataset.base = '';
   };
 
@@ -403,12 +434,12 @@ function setupSpeechRecognition() {
       els.transcriptInput.dataset.base = els.transcriptInput.value.trim();
       state.recognition.start();
       state.isListening = true;
-      els.speechBtn.textContent = 'Arrêter la dictée';
+      els.speechBtn.textContent = 'Stop';
       showToast('Dictée démarrée.');
     } else {
       state.recognition.stop();
       state.isListening = false;
-      els.speechBtn.textContent = 'Dictée micro bêta';
+      els.speechBtn.textContent = 'Dictée';
     }
   });
 }
@@ -441,11 +472,11 @@ function setupInstallPrompt() {
 }
 
 function bindEvents() {
+  $$('.tab-btn').forEach((btn) => btn.addEventListener('click', () => activateTab(btn.dataset.tab)));
+  $$('[data-tab]:not(.tab-btn)').forEach((btn) => btn.addEventListener('click', () => activateTab(btn.dataset.tab)));
+
   els.newCourseBtn.addEventListener('click', newCourse);
-  els.heroNewBtn.addEventListener('click', () => {
-    newCourse();
-    document.querySelector('.editor-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
+  els.heroNewBtn.addEventListener('click', newCourse);
   els.searchInput.addEventListener('input', (event) => {
     state.search = event.target.value;
     render();
@@ -462,7 +493,7 @@ function bindEvents() {
     renderMediaPreview(file, file.type, file.name);
   });
 
-  document.querySelectorAll('[data-premium]').forEach((btn) => btn.addEventListener('click', openPremium));
+  $$('[data-premium]').forEach((btn) => btn.addEventListener('click', openPremium));
   els.closePremium.addEventListener('click', () => els.premiumDialog.close());
   els.premiumOkBtn.addEventListener('click', () => els.premiumDialog.close());
 }
@@ -495,7 +526,22 @@ function init() {
   setupInstallPrompt();
   registerServiceWorker();
   render();
-  loadCourse(state.courses[0]?.id || null);
+  const firstId = state.courses[0]?.id;
+  if (firstId) {
+    const first = state.courses[0];
+    state.currentId = firstId;
+    els.editorTitle.textContent = first.title || 'Cours sans titre';
+    els.titleInput.value = first.title || '';
+    els.themeInput.value = DEFAULT_THEMES.includes(first.theme) ? first.theme : 'Autre';
+    els.customThemeInput.value = DEFAULT_THEMES.includes(first.theme) ? '' : first.theme;
+    els.dateInput.value = first.date || today();
+    els.teacherInput.value = first.teacher || '';
+    els.transcriptInput.value = first.transcript || '';
+    els.notesInput.value = first.notes || '';
+  } else {
+    newCourse();
+  }
+  activateTab('library');
 }
 
 init();
