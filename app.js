@@ -1,4 +1,5 @@
 const FREE_LIMIT = 5;
+const APP_VERSION = '1.1 Mobile Compact';
 const DB_NAME = 'coursmemo-ai-media';
 const DB_VERSION = 1;
 const STORE_NAME = 'media';
@@ -19,6 +20,7 @@ const $ = (selector) => document.querySelector(selector);
 
 const els = {
   installBtn: $('#installBtn'),
+  heroNewBtn: $('#heroNewBtn'),
   courseCount: $('#courseCount'),
   themeCount: $('#themeCount'),
   themeChips: $('#themeChips'),
@@ -340,7 +342,7 @@ function exportTxt() {
   }
 
   const content = [
-    `CoursMemo AI`,
+    `CoursMemo AI — ${APP_VERSION}`, 
     `Titre : ${course.title || 'Sans titre'}`,
     `Thème : ${course.theme}`,
     `Date : ${course.date}`,
@@ -440,6 +442,10 @@ function setupInstallPrompt() {
 
 function bindEvents() {
   els.newCourseBtn.addEventListener('click', newCourse);
+  els.heroNewBtn.addEventListener('click', () => {
+    newCourse();
+    document.querySelector('.editor-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
   els.searchInput.addEventListener('input', (event) => {
     state.search = event.target.value;
     render();
@@ -470,7 +476,7 @@ function seedDemoIfEmpty() {
       theme: 'Danse',
       date: today(),
       teacher: '',
-      transcript: 'Colle ici la transcription du cours ou utilise la dictée micro si disponible.',
+      transcript: 'Colle ici la transcription du cours, ou utilise la dictée micro si disponible.',
       notes: 'À revoir : posture, guidage, musicalité. Objectif : relire avant le prochain cours.',
       fileName: '',
       fileType: '',

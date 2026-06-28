@@ -1,20 +1,37 @@
-# CoursMemo AI — V1 PWA
+# CoursMemo AI — V1.1 Mobile Compact
 
-Prototype gratuit : classement par thème, fiche de cours, média local, transcription manuelle ou dictée micro selon navigateur, notes personnelles et export TXT.
+Prototype PWA optimisé mobile.
 
-## Fichiers
-- `index.html`
-- `styles.css`
-- `app.js`
-- `manifest.json`
-- `sw.js`
-- `icons/`
+## Nouveautés V1.1
+- Accueil plus court et plus direct.
+- Bouton `+ Nouveau cours` visible dès le haut de page.
+- Cartes plus compactes sur téléphone.
+- Formulaire plus léger.
+- Boutons d’action en grille compacte.
+- Bloc Premium mieux présenté : résumé IA, PDF, points à retenir, suivi de progression.
+- Cache PWA mis à jour : `coursmemo-ai-v1-1-mobile-compact-cache`.
+
+## Fonctionnalités V1 gratuite
+- Création de fiches de cours.
+- Classement par thème.
+- Recherche locale.
+- Import audio/vidéo stocké localement sur l'appareil.
+- Transcription manuelle.
+- Dictée micro bêta selon navigateur.
+- Notes personnelles.
+- Export TXT.
+
+## Premium prévu
+- Résumé IA automatique.
+- Fiche PDF.
+- Points clés à retenir.
+- Corrections du prof.
+- Objectifs du prochain cours.
+- Classement avancé.
+- Historique avancé.
 
 ## Important
-Cette V1 ne fait pas encore de transcription IA automatique serveur.
-Elle prépare la base produit : organisation, stockage local, PWA et écran Premium.
-Les fonctions Premium prévues : résumé IA, PDF, points clés, traduction, historique avancé.
+Cette V1.1 ne fait pas encore de transcription IA automatique serveur. Elle prépare la base produit et garde les fonctions de compréhension côté Premium.
 
-## Installation locale
-Ouvrir `index.html` dans un navigateur moderne.
-Pour tester l'installation PWA, héberger le dossier sur GitHub Pages, Vercel ou Netlify en HTTPS.
+## Déploiement Vercel
+Remplacer les fichiers du projet par ceux de ce dossier puis redéployer.
