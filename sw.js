@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coursmemo-ai-v1-2-flow-mobile-cache';
+const CACHE_NAME = 'coursmemo-ai-v1-3-app-feel-cache';
 const ASSETS = [
   './',
   './index.html',

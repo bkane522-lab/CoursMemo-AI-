@@ -1,8 +1,10 @@
 const FREE_LIMIT = 5;
-const APP_VERSION = '1.2 Flow Mobile';
+const APP_VERSION = '1.3 App Feel';
 const DB_NAME = 'coursmemo-ai-media';
 const DB_VERSION = 1;
 const STORE_NAME = 'media';
+const STORAGE_KEY = 'coursmemo_courses_v1';
+const ONBOARDING_KEY = 'coursmemo_onboarding_v13_seen';
 const DEFAULT_THEMES = ['Danse', 'Formation', 'Sport', 'Musique', 'Coaching', 'École', 'Bien-être', 'Travail', 'Autre'];
 
 const state = {
@@ -47,7 +49,11 @@ const els = {
   premiumDialog: $('#premiumDialog'),
   closePremium: $('#closePremium'),
   premiumOkBtn: $('#premiumOkBtn'),
+  onboardingDialog: $('#onboardingDialog'),
+  closeOnboarding: $('#closeOnboarding'),
+  startOnboardingBtn: $('#startOnboardingBtn'),
   exportTxtBtn: $('#exportTxtBtn'),
+  themeHelper: $('#themeHelper'),
   toast: $('#toast'),
 };
 
@@ -75,19 +81,20 @@ function showToast(message) {
 }
 
 function saveCourses() {
-  localStorage.setItem('coursmemo_courses_v1', JSON.stringify(state.courses));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.courses));
 }
 
 function loadCourses() {
-  const raw = localStorage.getItem('coursmemo_courses_v1');
+  const raw = localStorage.getItem(STORAGE_KEY);
   state.courses = raw ? JSON.parse(raw) : [];
 }
 
-function activateTab(tabName) {
+function activateTab(tabName, shouldScroll = true) {
   state.activeTab = tabName;
   $$('.tab-btn').forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === tabName));
   $$('.app-screen').forEach((screen) => screen.classList.toggle('active', screen.dataset.screen === tabName));
-  if (window.matchMedia('(max-width: 760px)').matches) {
+
+  if (shouldScroll && window.matchMedia('(max-width: 760px)').matches) {
     document.querySelector('.section-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
@@ -224,6 +231,7 @@ async function loadCourse(id) {
       showToast('Aperçu média indisponible.');
     }
   }
+  updateThemeHelper();
   render();
   activateTab('editor');
 }
@@ -238,6 +246,7 @@ function newCourse() {
   els.customThemeInput.value = '';
   els.fileLabel.textContent = 'MP3, WAV, M4A, MP4, MOV — stockage local sur l\'appareil.';
   resetMediaPreview();
+  updateThemeHelper();
   render();
   activateTab('editor');
 }
@@ -312,8 +321,10 @@ function getFilteredCourses() {
 }
 
 function renderThemes() {
+  const themes = getThemes();
+  if (!themes.includes(state.selectedTheme)) state.selectedTheme = 'Tous';
   els.themeChips.innerHTML = '';
-  getThemes().forEach((theme) => {
+  themes.forEach((theme) => {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = `chip ${theme === state.selectedTheme ? 'active' : ''}`;
@@ -444,9 +455,34 @@ function setupSpeechRecognition() {
   });
 }
 
+function updateThemeHelper() {
+  const theme = getThemeFromForm().toLowerCase();
+  const isDance = theme.includes('danse') || theme.includes('kizomba') || theme.includes('urban') || theme.includes('bachata') || theme.includes('salsa');
+  if (isDance) {
+    els.themeHelper.classList.remove('is-hidden');
+    els.themeHelper.innerHTML = '<strong>Mode danse :</strong> note les corrections du prof, mouvements à revoir, musicalité et objectif du prochain cours.';
+    return;
+  }
+
+  els.themeHelper.classList.remove('is-hidden');
+  els.themeHelper.innerHTML = '<strong>Astuce :</strong> note les points importants, les actions à faire et ce que tu veux revoir avant le prochain cours.';
+}
+
 function openPremium() {
   if (typeof els.premiumDialog.showModal === 'function') els.premiumDialog.showModal();
   else alert('Premium : résumé IA, PDF, points clés, historique avancé.');
+}
+
+function openOnboardingIfNeeded() {
+  if (localStorage.getItem(ONBOARDING_KEY)) return;
+  window.setTimeout(() => {
+    if (typeof els.onboardingDialog.showModal === 'function') els.onboardingDialog.showModal();
+  }, 450);
+}
+
+function closeOnboarding() {
+  localStorage.setItem(ONBOARDING_KEY, '1');
+  els.onboardingDialog.close();
 }
 
 function registerServiceWorker() {
@@ -484,6 +520,8 @@ function bindEvents() {
   els.form.addEventListener('submit', saveCurrentCourse);
   els.deleteBtn.addEventListener('click', deleteCurrentCourse);
   els.exportTxtBtn.addEventListener('click', exportTxt);
+  els.themeInput.addEventListener('change', updateThemeHelper);
+  els.customThemeInput.addEventListener('input', updateThemeHelper);
 
   els.mediaInput.addEventListener('change', (event) => {
     const file = event.target.files?.[0];
@@ -496,6 +534,8 @@ function bindEvents() {
   $$('[data-premium]').forEach((btn) => btn.addEventListener('click', openPremium));
   els.closePremium.addEventListener('click', () => els.premiumDialog.close());
   els.premiumOkBtn.addEventListener('click', () => els.premiumDialog.close());
+  els.closeOnboarding.addEventListener('click', closeOnboarding);
+  els.startOnboardingBtn.addEventListener('click', closeOnboarding);
 }
 
 function seedDemoIfEmpty() {
@@ -518,6 +558,27 @@ function seedDemoIfEmpty() {
   saveCourses();
 }
 
+function hydrateFirstCourse() {
+  const firstId = state.courses[0]?.id;
+  if (!firstId) {
+    newCourse();
+    return;
+  }
+
+  const first = state.courses[0];
+  state.currentId = firstId;
+  els.editorTitle.textContent = first.title || 'Cours sans titre';
+  els.titleInput.value = first.title || '';
+  els.themeInput.value = DEFAULT_THEMES.includes(first.theme) ? first.theme : 'Autre';
+  els.customThemeInput.value = DEFAULT_THEMES.includes(first.theme) ? '' : first.theme;
+  els.dateInput.value = first.date || today();
+  els.teacherInput.value = first.teacher || '';
+  els.transcriptInput.value = first.transcript || '';
+  els.notesInput.value = first.notes || '';
+  els.fileLabel.textContent = first.fileName ? `${first.fileName} — fichier déjà enregistré` : 'MP3, WAV, M4A, MP4, MOV — stockage local sur l\'appareil.';
+  updateThemeHelper();
+}
+
 function init() {
   loadCourses();
   seedDemoIfEmpty();
@@ -525,23 +586,10 @@ function init() {
   setupSpeechRecognition();
   setupInstallPrompt();
   registerServiceWorker();
+  hydrateFirstCourse();
   render();
-  const firstId = state.courses[0]?.id;
-  if (firstId) {
-    const first = state.courses[0];
-    state.currentId = firstId;
-    els.editorTitle.textContent = first.title || 'Cours sans titre';
-    els.titleInput.value = first.title || '';
-    els.themeInput.value = DEFAULT_THEMES.includes(first.theme) ? first.theme : 'Autre';
-    els.customThemeInput.value = DEFAULT_THEMES.includes(first.theme) ? '' : first.theme;
-    els.dateInput.value = first.date || today();
-    els.teacherInput.value = first.teacher || '';
-    els.transcriptInput.value = first.transcript || '';
-    els.notesInput.value = first.notes || '';
-  } else {
-    newCourse();
-  }
-  activateTab('library');
+  activateTab('library', false);
+  openOnboardingIfNeeded();
 }
 
 init();
