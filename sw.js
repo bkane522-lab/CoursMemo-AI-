@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coursmemo-ai-v1-4-2-polish-cache';
+const CACHE_NAME = 'coursmemo-ai-v1.4.3-import-fix';
 const ASSETS = [
   './',
   './index.html',

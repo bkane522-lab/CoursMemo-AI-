@@ -1,25 +1,16 @@
-# CoursMemo AI — V1.4.2 Polish
+# CoursMemo AI — V1.4.3 Import Fix
 
-Version de finition basée sur V1.4.1 Mobile Hotfix.
+Correction ciblée de l’import audio/vidéo sur mobile.
 
-## Améliorations
+## Corrections
 
-- Badge public simplifié : “Gratuit · Notes & transcription”.
-- Suppression du double bouton d’installation dans la carte d’accueil.
-- Correction du libellé singulier/pluriel : “1 thème” au lieu de “1 thèmes”.
-- Bloc Premium de la fiche corrigé pour éviter le mot coupé sur mobile.
-- Page Premium légèrement reformulée avec “Premium bientôt”.
-- Cache PWA mis à jour en V1.4.2.
+- Le libellé précise que le fichier est ajouté localement, pas envoyé sur un serveur.
+- Message clair après sélection : il faut appuyer sur **Enregistrer** pour garder le média dans la fiche.
+- Aperçu média amélioré avec bouton **Ouvrir**.
+- Message d’erreur plus clair si le navigateur ne peut pas lire l’aperçu vidéo.
+- Stockage média local via IndexedDB conservé.
+- Cache PWA mis à jour en V1.4.3.
 
-## Fonctionnalités conservées
+## Important
 
-- Classement par thème.
-- Import audio / vidéo en stockage local.
-- Transcription manuelle et dictée micro selon navigateur.
-- Notes personnelles.
-- Export TXT.
-- Page Premium prévue : résumé IA, fiche PDF, points clés et suivi avancé.
-
-## Note
-
-La transcription IA automatique, le résumé IA et la génération PDF ne sont pas encore branchés côté serveur. Ils restent prévus pour une future version Premium avec backend sécurisé.
+La V1.4.3 ne fait pas encore de transcription automatique à partir de la vidéo. Le résumé IA et le PDF restent prévus pour une future version Premium avec backend sécurisé.

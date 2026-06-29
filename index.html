@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#07111f" />
   <meta name="description" content="CoursMemo AI transforme tes cours audio/vidéo en transcriptions, notes classées et fiches prêtes à réviser." />
-  <title>CoursMemo AI — V1.4.2 Polish</title>
+  <title>CoursMemo AI — V1.4.3 Import Fix</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -27,7 +27,7 @@
 
       <section class="hero-card app-feel-card">
         <div>
-          <p class="pill">Gratuit · Notes & transcription</p>
+          <p class="pill">Gratuit · Notes & import local</p>
           <h2>Notes claires pour tes cours.</h2>
           <p>Classe tes cours, garde tes transcriptions et exporte tes notes en TXT. Le résumé IA et la fiche PDF seront disponibles dans Premium.</p>
         </div>
@@ -108,13 +108,14 @@
             <label class="file-drop" for="mediaInput">
               <span class="file-icon">🎧</span>
               <span>
-                <strong>Importer audio / vidéo</strong>
-                <small id="fileLabel">MP3, WAV, M4A, MP4, MOV — stockage local.</small>
+                <strong>Ajouter audio / vidéo</strong>
+                <small id="fileLabel">Choisis un fichier. Il reste sur ton appareil.</small>
               </span>
               <input id="mediaInput" type="file" accept="audio/*,video/*" />
             </label>
 
             <div id="mediaPreview" class="media-preview" hidden></div>
+            <div id="fileStatus" class="file-status" hidden></div>
 
             <label>
               Transcription

@@ -1,10 +1,10 @@
 const FREE_LIMIT = 5;
-const APP_VERSION = '1.4.2 Polish';
+const APP_VERSION = '1.4.3 Import Fix';
 const DB_NAME = 'coursmemo-ai-media';
 const DB_VERSION = 1;
 const STORE_NAME = 'media';
 const STORAGE_KEY = 'coursmemo_courses_v1';
-const ONBOARDING_KEY = 'coursmemo_onboarding_v142_seen';
+const ONBOARDING_KEY = 'coursmemo_onboarding_v143_seen';
 const DEFAULT_THEMES = ['Danse', 'Formation', 'Sport', 'Musique', 'Coaching', 'École', 'Bien-être', 'Travail', 'Autre'];
 
 const state = {
@@ -44,6 +44,7 @@ const els = {
   mediaInput: $('#mediaInput'),
   fileLabel: $('#fileLabel'),
   mediaPreview: $('#mediaPreview'),
+  fileStatus: $('#fileStatus'),
   transcriptInput: $('#transcriptInput'),
   notesInput: $('#notesInput'),
   deleteBtn: $('#deleteBtn'),
@@ -180,6 +181,18 @@ function resetMediaPreview() {
   state.mediaUrl = null;
   els.mediaPreview.hidden = true;
   els.mediaPreview.innerHTML = '';
+  if (els.fileStatus) {
+    els.fileStatus.hidden = true;
+    els.fileStatus.textContent = '';
+    els.fileStatus.classList.remove('warning');
+  }
+}
+
+function setFileStatus(message, warning = false) {
+  if (!els.fileStatus) return;
+  els.fileStatus.hidden = false;
+  els.fileStatus.textContent = message;
+  els.fileStatus.classList.toggle('warning', warning);
 }
 
 function renderMediaPreview(blob, type, name) {
@@ -188,13 +201,35 @@ function renderMediaPreview(blob, type, name) {
   state.mediaUrl = URL.createObjectURL(blob);
   const isVideo = (type || '').startsWith('video/');
   const safeName = escapeHtml(name || 'Fichier importé');
+  const playerId = `mediaPlayer_${Date.now()}`;
+
   els.mediaPreview.hidden = false;
   els.mediaPreview.innerHTML = `
-    <p class="course-meta" style="margin-bottom:10px;">${safeName}</p>
+    <div class="media-preview-head">
+      <p>${safeName}</p>
+      <a class="media-open-link" href="${state.mediaUrl}" target="_blank" rel="noopener">Ouvrir</a>
+    </div>
     ${isVideo
-      ? `<video controls src="${state.mediaUrl}"></video>`
-      : `<audio controls src="${state.mediaUrl}"></audio>`}
+      ? `<video id="${playerId}" controls preload="metadata" playsinline></video>`
+      : `<audio id="${playerId}" controls preload="metadata"></audio>`}
+    <p class="media-help">Aperçu local uniquement. Pour garder ce fichier dans la fiche, appuie sur “Enregistrer”.</p>
   `;
+
+  const player = document.getElementById(playerId);
+  if (player) {
+    player.src = state.mediaUrl;
+    player.addEventListener('loadedmetadata', () => {
+      setFileStatus('Fichier ajouté localement. Appuie sur “Enregistrer” pour le garder dans cette fiche.');
+    });
+    player.addEventListener('error', () => {
+      setFileStatus('Le fichier est ajouté, mais ce navigateur ne sait pas lire son aperçu. Essaie un MP4 H.264/AAC, un MP3 ou enregistre quand même la fiche.', true);
+    });
+  }
+
+  window.setTimeout(() => {
+    if (!els.fileStatus || !els.fileStatus.hidden) return;
+    setFileStatus('Fichier ajouté localement. Appuie sur “Enregistrer” pour le garder dans cette fiche.');
+  }, 900);
 }
 
 function escapeHtml(value) {
@@ -226,7 +261,7 @@ async function loadCourse(id) {
   els.teacherInput.value = course.teacher || '';
   els.transcriptInput.value = course.transcript || '';
   els.notesInput.value = course.notes || '';
-  els.fileLabel.textContent = course.fileName ? `${course.fileName} — fichier déjà enregistré` : 'MP3, WAV, M4A, MP4, MOV — stockage local sur l\'appareil.';
+  els.fileLabel.textContent = course.fileName ? `${course.fileName} — enregistré dans cette fiche` : 'Choisis un fichier. Il reste sur ton appareil.';
   resetMediaPreview();
   if (course.fileName) {
     try {
@@ -249,7 +284,7 @@ function newCourse() {
   els.dateInput.value = today();
   els.themeInput.value = 'Danse';
   els.customThemeInput.value = '';
-  els.fileLabel.textContent = 'MP3, WAV, M4A, MP4, MOV — stockage local sur l\'appareil.';
+  els.fileLabel.textContent = 'Choisis un fichier. Il reste sur ton appareil.';
   if (els.mediaInput) els.mediaInput.value = '';
   resetMediaPreview();
   updateThemeHelper();
@@ -573,8 +608,10 @@ function bindEvents() {
     const file = event.target.files?.[0];
     if (!file) return;
     state.selectedFile = file;
-    els.fileLabel.textContent = `${file.name} — ${(file.size / 1024 / 1024).toFixed(1)} Mo`;
+    const sizeMb = (file.size / 1024 / 1024).toFixed(1);
+    els.fileLabel.textContent = `${file.name} — ${sizeMb} Mo`;
     renderMediaPreview(file, file.type, file.name);
+    showToast('Fichier ajouté. Appuie sur Enregistrer pour le garder.');
   });
 
   $$('[data-premium]').forEach((btn) => btn.addEventListener('click', openPremium));
@@ -623,7 +660,7 @@ function hydrateFirstCourse() {
   els.teacherInput.value = first.teacher || '';
   els.transcriptInput.value = first.transcript || '';
   els.notesInput.value = first.notes || '';
-  els.fileLabel.textContent = first.fileName ? `${first.fileName} — fichier déjà enregistré` : 'MP3, WAV, M4A, MP4, MOV — stockage local.';
+  els.fileLabel.textContent = first.fileName ? `${first.fileName} — fichier déjà enregistré` : 'Choisis un fichier. Il reste sur ton appareil.';
   updateThemeHelper();
 }
 
