@@ -549,12 +549,199 @@ async function prepareFileForGroq(file) {
     return file;
   }
 
-  showToast('Fichier volumineux : extraction audio locale en cours…', true);
-  const wav = await extractAudioToWav(file);
-  if (wav.size > GROQ_FILE_LIMIT) {
-    throw new Error('Le fichier reste trop lourd après extraction audio. Coupe la vidéo en plusieurs parties plus courtes.');
+  showToast('Gros fichier : extraction audio compressée en cours… Laisse l’app ouverte.', true);
+
+  let extractedAudio = null;
+  const errors = [];
+
+  // Méthode principale pour les gros MP4 Android : on lit la vidéo et on enregistre
+  // uniquement la piste audio en WebM/Opus. Cette méthode évite de charger les
+  // 300/400 Mo du fichier en mémoire d’un seul coup.
+  if (file.type.startsWith('video/')) {
+    try {
+      extractedAudio = await extractAudioByPlayback(file);
+    } catch (error) {
+      errors.push(`extraction directe: ${error.message}`);
+    }
   }
-  return wav;
+
+  // Méthode de secours : décodage complet en mémoire. On l’évite sur les très gros
+  // fichiers, car Chrome Android peut renvoyer “Unable to decode audio data”.
+  if (!extractedAudio && file.size <= 120 * 1024 * 1024) {
+    try {
+      showToast('Extraction audio classique en cours…', true);
+      extractedAudio = await extractAudioToWav(file);
+    } catch (error) {
+      errors.push(`extraction classique: ${error.message}`);
+    }
+  }
+
+  if (!extractedAudio) {
+    const detail = errors.length ? ` Détail : ${errors.join(' / ')}` : '';
+    throw new Error(`Impossible d’extraire l’audio de cette vidéo volumineuse. Essaie une vidéo plus courte, ou convertis-la en MP3/M4A avant import.${detail}`);
+  }
+
+  if (extractedAudio.size > GROQ_FILE_LIMIT) {
+    const mb = (extractedAudio.size / 1024 / 1024).toFixed(1);
+    throw new Error(`L’audio extrait fait ${mb} Mo, au-dessus de la limite Groq de 25 Mo. Coupe la vidéo en plusieurs parties plus courtes.`);
+  }
+
+  return extractedAudio;
+}
+
+
+function waitForMediaEvent(element, eventName, timeoutMs, errorMessage) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error(errorMessage || `Délai dépassé pendant ${eventName}.`));
+    }, timeoutMs);
+
+    const onEvent = () => {
+      cleanup();
+      resolve();
+    };
+
+    const onError = () => {
+      cleanup();
+      reject(new Error(element.error?.message || `Erreur média pendant ${eventName}.`));
+    };
+
+    function cleanup() {
+      clearTimeout(timer);
+      element.removeEventListener(eventName, onEvent);
+      element.removeEventListener('error', onError);
+    }
+
+    element.addEventListener(eventName, onEvent, { once: true });
+    element.addEventListener('error', onError, { once: true });
+  });
+}
+
+function getSupportedRecorderMimeType() {
+  const candidates = [
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'video/webm;codecs=opus',
+    'video/webm'
+  ];
+  return candidates.find(type => window.MediaRecorder?.isTypeSupported?.(type)) || '';
+}
+
+async function extractAudioByPlayback(file) {
+  const captureStream = HTMLMediaElement.prototype.captureStream || HTMLMediaElement.prototype.mozCaptureStream;
+  if (!captureStream) {
+    throw new Error('captureStream non disponible sur ce navigateur');
+  }
+  if (!window.MediaRecorder) {
+    throw new Error('MediaRecorder non disponible sur ce navigateur');
+  }
+
+  const mimeType = getSupportedRecorderMimeType();
+  if (!mimeType) {
+    throw new Error('format audio compressé non supporté par ce navigateur');
+  }
+
+  const url = URL.createObjectURL(file);
+  const video = document.createElement('video');
+  video.src = url;
+  video.preload = 'metadata';
+  video.playsInline = true;
+  video.muted = false;
+  video.volume = 0;
+  video.controls = false;
+  video.style.position = 'fixed';
+  video.style.left = '-10000px';
+  video.style.top = '0';
+  video.style.width = '1px';
+  video.style.height = '1px';
+  video.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(video);
+
+  let progressTimer = null;
+
+  try {
+    await waitForMediaEvent(video, 'loadedmetadata', 15000, 'impossible de lire les métadonnées vidéo');
+
+    if (Number.isFinite(video.duration) && video.duration > 20 * 60) {
+      throw new Error('vidéo trop longue pour l’extraction mobile automatique');
+    }
+
+    const stream = captureStream.call(video);
+    let audioTracks = stream.getAudioTracks();
+
+    // Sur certains Android, les pistes apparaissent seulement après le lancement.
+    if (!audioTracks.length) {
+      await video.play();
+      await new Promise(resolve => setTimeout(resolve, 700));
+      video.pause();
+      video.currentTime = 0;
+      await waitForMediaEvent(video, 'seeked', 8000, 'impossible de préparer la vidéo');
+      audioTracks = stream.getAudioTracks();
+    }
+
+    if (!audioTracks.length) {
+      throw new Error('aucune piste audio détectée dans la vidéo');
+    }
+
+    const audioStream = new MediaStream(audioTracks);
+    const chunks = [];
+    const recorder = new MediaRecorder(audioStream, {
+      mimeType,
+      audioBitsPerSecond: 48000
+    });
+
+    const resultPromise = new Promise((resolve, reject) => {
+      recorder.ondataavailable = event => {
+        if (event.data && event.data.size) chunks.push(event.data);
+      };
+      recorder.onerror = event => reject(new Error(event.error?.message || 'erreur pendant l’enregistrement audio'));
+      recorder.onstop = () => {
+        if (!chunks.length) {
+          reject(new Error('aucun audio extrait'));
+          return;
+        }
+        const blob = new Blob(chunks, { type: mimeType });
+        const extension = mimeType.includes('webm') ? 'webm' : 'audio';
+        resolve(new File([blob], `${cleanBaseName(file.name)}-audio.${extension}`, { type: mimeType }));
+      };
+    });
+
+    recorder.start(1000);
+    showToast('Extraction audio en cours… Ne verrouille pas le téléphone.', true);
+
+    progressTimer = setInterval(() => {
+      const current = Math.floor(video.currentTime || 0);
+      const total = Number.isFinite(video.duration) ? Math.floor(video.duration) : 0;
+      if (total) {
+        showToast(`Extraction audio : ${current}s / ${total}s…`, true);
+      }
+    }, 3500);
+
+    const stopRecorder = () => {
+      if (recorder.state !== 'inactive') recorder.stop();
+    };
+
+    video.addEventListener('ended', stopRecorder, { once: true });
+    await video.play();
+
+    const hardLimit = Number.isFinite(video.duration) ? (video.duration + 30) * 1000 : 20 * 60 * 1000;
+    await Promise.race([
+      resultPromise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('extraction trop longue ou vidéo bloquée')), hardLimit))
+    ]).finally(() => {
+      if (recorder.state !== 'inactive') recorder.stop();
+    });
+
+    return await resultPromise;
+  } finally {
+    clearInterval(progressTimer);
+    try { video.pause(); } catch {}
+    video.removeAttribute('src');
+    video.load?.();
+    video.remove();
+    URL.revokeObjectURL(url);
+  }
 }
 
 async function extractAudioToWav(file) {

@@ -1,4 +1,4 @@
-# CoursMemo AI — V1.5 Groq IA
+# CoursMemo AI — V1.5.1.1 Groq IA
 
 Version qui ajoute les fonctions demandées à partir de l’idée Resutrans : transcription IA et résumé IA avec une clé Groq, tout en gardant l’interface CoursMemo AI.
 
@@ -11,7 +11,7 @@ Version qui ajoute les fonctions demandées à partir de l’idée Resutrans : t
 - Export TXT enrichi : titre, thème, transcription, résumé IA et notes personnelles.
 - Import média local conservé via IndexedDB.
 - Si un fichier dépasse la limite prévue, tentative d’extraction audio locale en WAV mono 16 kHz avant envoi.
-- Cache PWA mis à jour en V1.5.
+- Cache PWA mis à jour en V1.5.1.
 
 ## Utilisation
 
@@ -44,3 +44,10 @@ Pour une version publique ou payante, il faudra passer par un backend sécurisé
 - L’extraction audio locale dépend du navigateur et du format vidéo.
 - La fiche PDF n’est pas encore branchée.
 - Pas de synchronisation cloud : les données restent sur l’appareil.
+
+
+## Correctif V1.5.1 — gros fichiers vidéo Android
+
+Cette version ajoute un second mode d’extraction audio pour les grosses vidéos MP4 : l’app lit la vidéo localement, en arrière-plan, puis enregistre seulement la piste audio compressée en WebM/Opus avant l’envoi à Groq. Cela évite le chargement complet en mémoire qui provoquait l’erreur `Unable to decode audio data` sur certains fichiers vidéo volumineux.
+
+À savoir : cette extraction peut durer presque le temps réel de la vidéo. Il faut laisser l’écran ouvert pendant l’extraction. Si l’audio extrait dépasse encore 25 Mo, il faudra couper la vidéo en plusieurs parties.
