@@ -1,53 +1,55 @@
-# CoursMemo AI — V1.5.1.1 Groq IA
+# CoursMemo AI — V1.6 Audio + Transcription
 
-Version qui ajoute les fonctions demandées à partir de l’idée Resutrans : transcription IA et résumé IA avec une clé Groq, tout en gardant l’interface CoursMemo AI.
+Cette version sépare clairement le parcours demandé :
 
-## Nouveautés
+1. **Fiche** : titre, thème, import vidéo/audio, options.
+2. **Audio** : conversion vidéo → audio quand le navigateur peut extraire la piste audio.
+3. **Texte** : transcription Groq, résumé IA, dictée, export TXT.
+4. **Premium** : espace prévu pour PDF, export complet et suivi avancé.
 
-- Bouton **Clé IA** pour enregistrer une clé API Groq localement sur l’appareil.
-- Bouton **Transcrire** : envoie l’audio/vidéo à l’API de transcription Groq.
-- Bouton **Résumé IA** : transforme la transcription en résumé, points clés, corrections et objectifs.
-- Zone **Résumé IA** ajoutée dans la fiche.
-- Export TXT enrichi : titre, thème, transcription, résumé IA et notes personnelles.
-- Import média local conservé via IndexedDB.
-- Si un fichier dépasse la limite prévue, tentative d’extraction audio locale en WAV mono 16 kHz avant envoi.
-- Cache PWA mis à jour en V1.5.1.
+## Nouveautés V1.6
 
-## Utilisation
+- Ajout d’un onglet **Audio**.
+- Ajout d’un bouton **Convertir en audio**.
+- Ajout d’un aperçu de l’audio converti.
+- Ajout d’un bouton **Utiliser pour transcription**.
+- Ajout d’un bouton **Télécharger audio**.
+- Ajout d’un onglet **Texte** séparé pour la transcription, le résumé IA, la dictée et l’export TXT.
+- Le bouton **Transcrire** utilise automatiquement l’audio converti si disponible.
+- Cache PWA mis à jour en V1.6.
 
-1. Déploie le projet sur Vercel.
-2. Ouvre l’app sur téléphone.
-3. Appuie sur **Clé IA** et colle ta clé Groq `gsk_...`.
-4. Crée une fiche de cours.
-5. Ajoute une vidéo ou un audio.
-6. Appuie sur **Transcrire**.
-7. Appuie sur **Résumé IA**.
-8. Enregistre et exporte en TXT si besoin.
+## Workflow conseillé
 
-## Confidentialité
+1. Créer une fiche.
+2. Ajouter une vidéo ou un audio.
+3. Aller dans **Audio**.
+4. Appuyer sur **Convertir en audio**.
+5. Si l’audio est créé, appuyer sur **Utiliser pour transcription**.
+6. Aller dans **Texte**.
+7. Appuyer sur **Transcrire**.
+8. Appuyer sur **Résumé IA**.
+9. Enregistrer la fiche.
 
-Les titres, notes, transcriptions et médias restent stockés sur l’appareil via localStorage/IndexedDB.
+## Limite importante
 
-Quand tu appuies sur **Transcrire**, le fichier média est envoyé directement depuis le navigateur vers Groq.
+La conversion audio dans le navigateur dépend de Chrome Android et du format du fichier vidéo.
 
-Quand tu appuies sur **Résumé IA**, le texte de transcription est envoyé directement depuis le navigateur vers Groq.
+Si la vidéo affiche une erreur du type `DEMUXER_ERROR_DETECTED_AAC` ou `Unable to decode audio data`, cela veut dire que le navigateur ne peut pas lire ou extraire correctement la piste audio de ce fichier.
 
-## Sécurité importante
+Dans ce cas, la solution fiable reste :
 
-Cette version appelle Groq directement depuis le navigateur. C’est pratique pour un usage personnel, mais ce n’est pas conseillé pour une app publique, car une clé API utilisée côté navigateur peut être visible dans les outils développeur.
+- convertir la vidéo en **MP3** ou **M4A** avec une app externe ;
+- ou couper le cours en extraits plus courts ;
+- puis importer l’audio dans CoursMemo AI.
 
-Pour une version publique ou payante, il faudra passer par un backend sécurisé qui garde la clé API côté serveur.
+## Groq IA
 
-## Limites connues
+- **Transcrire** envoie le fichier audio/vidéo à Groq avec ta clé API.
+- **Résumé IA** envoie la transcription à Groq avec ta clé API.
+- La clé est stockée localement sur l’appareil.
 
-- Les fichiers très longs peuvent dépasser la limite acceptée par l’API.
-- L’extraction audio locale dépend du navigateur et du format vidéo.
-- La fiche PDF n’est pas encore branchée.
-- Pas de synchronisation cloud : les données restent sur l’appareil.
+## Sécurité
 
+Cette version appelle Groq directement depuis le navigateur. C’est adapté à un usage personnel, mais pas à une application publique payante.
 
-## Correctif V1.5.1 — gros fichiers vidéo Android
-
-Cette version ajoute un second mode d’extraction audio pour les grosses vidéos MP4 : l’app lit la vidéo localement, en arrière-plan, puis enregistre seulement la piste audio compressée en WebM/Opus avant l’envoi à Groq. Cela évite le chargement complet en mémoire qui provoquait l’erreur `Unable to decode audio data` sur certains fichiers vidéo volumineux.
-
-À savoir : cette extraction peut durer presque le temps réel de la vidéo. Il faut laisser l’écran ouvert pendant l’extraction. Si l’audio extrait dépasse encore 25 Mo, il faudra couper la vidéo en plusieurs parties.
+Pour une app publique, il faudra un backend sécurisé qui garde la clé API côté serveur.

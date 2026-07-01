@@ -1,16 +1,18 @@
 const FREE_LIMIT = 5;
-const APP_VERSION = '1.5 Groq IA';
+const APP_VERSION = '1.6 Audio + Transcription';
 const DB_NAME = 'coursmemo-ai-media';
 const DB_VERSION = 1;
 const STORE_NAME = 'media';
 const STORAGE_KEY = 'coursmemo_courses_v1';
-const ONBOARDING_KEY = 'coursmemo_onboarding_v15_seen';
+const ONBOARDING_KEY = 'coursmemo_onboarding_v16_seen';
 const DEFAULT_THEMES = ['Danse', 'Formation', 'Sport', 'Musique', 'Coaching', 'École', 'Bien-être', 'Travail', 'Autre'];
 const GROQ_KEY_STORAGE = 'coursmemo_groq_api_key';
 const GROQ_TRANSCRIPTION_MODEL = 'whisper-large-v3-turbo';
 const GROQ_CHAT_MODEL = 'llama-3.1-8b-instant';
 const GROQ_FILE_LIMIT = 25 * 1024 * 1024;
 const AUDIO_EXTRACT_THRESHOLD = 24 * 1024 * 1024;
+const VERY_LARGE_VIDEO_LIMIT = 180 * 1024 * 1024;
+const AUDIO_FIRST_EXTENSIONS = ['mp3', 'm4a', 'wav', 'webm', 'ogg', 'mpeg', 'mpga'];
 
 const state = {
   courses: [],
@@ -20,11 +22,14 @@ const state = {
   activeTab: 'library',
   deferredPrompt: null,
   selectedFile: null,
+  convertedAudioFile: null,
+  convertedAudioUrl: null,
   mediaUrl: null,
   recognition: null,
   isListening: false,
   isTranscribing: false,
   isSummarizing: false,
+  isConverting: false,
 };
 
 let toastTimer = null;
@@ -55,6 +60,12 @@ const els = {
   fileLabel: $('#fileLabel'),
   mediaPreview: $('#mediaPreview'),
   fileStatus: $('#fileStatus'),
+  conversionSource: $('#conversionSource'),
+  convertAudioBtn: $('#convertAudioBtn'),
+  useConvertedAudioBtn: $('#useConvertedAudioBtn'),
+  downloadAudioBtn: $('#downloadAudioBtn'),
+  conversionStatus: $('#conversionStatus'),
+  convertedAudioPreview: $('#convertedAudioPreview'),
   transcriptInput: $('#transcriptInput'),
   summaryInput: $('#summaryInput'),
   notesInput: $('#notesInput'),
@@ -216,6 +227,175 @@ function setFileStatus(message, warning = false) {
   els.fileStatus.classList.toggle('warning', warning);
 }
 
+
+function setConversionStatus(message, warning = false) {
+  if (!els.conversionStatus) return;
+  els.conversionStatus.hidden = false;
+  els.conversionStatus.textContent = message;
+  els.conversionStatus.classList.toggle('warning', warning);
+}
+
+function clearConversionStatus() {
+  if (!els.conversionStatus) return;
+  els.conversionStatus.hidden = true;
+  els.conversionStatus.textContent = '';
+  els.conversionStatus.classList.remove('warning');
+}
+
+function resetConvertedAudio() {
+  if (state.convertedAudioUrl) URL.revokeObjectURL(state.convertedAudioUrl);
+  state.convertedAudioUrl = null;
+  state.convertedAudioFile = null;
+  if (els.convertedAudioPreview) {
+    els.convertedAudioPreview.hidden = true;
+    els.convertedAudioPreview.innerHTML = '';
+  }
+  if (els.useConvertedAudioBtn) els.useConvertedAudioBtn.disabled = true;
+  if (els.downloadAudioBtn) els.downloadAudioBtn.disabled = true;
+  clearConversionStatus();
+}
+
+function updateConversionSource() {
+  if (!els.conversionSource) return;
+  const file = state.selectedFile;
+  if (file) {
+    const mb = (file.size / 1024 / 1024).toFixed(1);
+    const isAudio = isAudioFirstFile(file);
+    els.conversionSource.textContent = isAudio
+      ? `Audio prêt : ${file.name} — ${mb} Mo. Tu peux passer directement à Texte.`
+      : `Vidéo sélectionnée : ${file.name} — ${mb} Mo. Tu peux tenter la conversion en audio.`;
+    els.conversionSource.classList.toggle('warning', !isAudio && file.size > GROQ_FILE_LIMIT);
+    return;
+  }
+
+  if (state.currentId) {
+    const course = state.courses.find((item) => item.id === state.currentId);
+    if (course?.fileName) {
+      els.conversionSource.textContent = `Fichier enregistré : ${course.fileName}. Pour convertir, l’app utilisera le média stocké dans cette fiche.`;
+      els.conversionSource.classList.remove('warning');
+      return;
+    }
+  }
+
+  els.conversionSource.textContent = 'Aucun média sélectionné. Ajoute une vidéo ou un audio dans l’onglet Fiche.';
+  els.conversionSource.classList.remove('warning');
+}
+
+function renderConvertedAudioPreview(file) {
+  if (!els.convertedAudioPreview || !file) return;
+  if (state.convertedAudioUrl) URL.revokeObjectURL(state.convertedAudioUrl);
+  state.convertedAudioUrl = URL.createObjectURL(file);
+  const safeName = escapeHtml(file.name || 'audio-converti.webm');
+  els.convertedAudioPreview.hidden = false;
+  els.convertedAudioPreview.innerHTML = `
+    <div class="media-preview-head">
+      <p>${safeName}</p>
+      <a class="media-open-link" href="${state.convertedAudioUrl}" target="_blank" rel="noopener">Ouvrir</a>
+    </div>
+    <audio controls preload="metadata" src="${state.convertedAudioUrl}"></audio>
+    <p class="media-help">Audio converti localement. Tu peux le télécharger ou l’utiliser pour l’onglet Texte.</p>
+  `;
+  if (els.useConvertedAudioBtn) els.useConvertedAudioBtn.disabled = false;
+  if (els.downloadAudioBtn) els.downloadAudioBtn.disabled = false;
+}
+
+async function convertMediaToAudio(file) {
+  if (!file) throw new Error('Aucun fichier à convertir.');
+
+  if (isAudioFirstFile(file)) {
+    return new File([file], file.name || 'coursmemo-audio', { type: file.type || 'audio/mpeg' });
+  }
+
+  if (!file.type?.startsWith('video/')) {
+    throw new Error('Format non reconnu. Ajoute une vidéo ou un fichier audio.');
+  }
+
+  const errors = [];
+  let audio = null;
+
+  try {
+    audio = await extractAudioByPlayback(file);
+  } catch (error) {
+    errors.push(`conversion directe: ${error.message}`);
+  }
+
+  if (!audio && file.size <= 120 * 1024 * 1024) {
+    try {
+      audio = await extractAudioToWav(file);
+    } catch (error) {
+      errors.push(`conversion classique: ${error.message}`);
+    }
+  }
+
+  if (!audio) throw new Error(buildAudioSafeError(errors));
+  return audio;
+}
+
+async function convertCurrentMedia() {
+  if (state.isConverting) return;
+  const file = await getCurrentRawMediaFile();
+  if (!file) {
+    activateTab('editor');
+    showToast('Ajoute d’abord une vidéo ou un audio dans la fiche.');
+    return;
+  }
+
+  state.isConverting = true;
+  setButtonBusy(els.convertAudioBtn, true, 'Conversion…', 'Convertir en audio');
+  resetConvertedAudio();
+  try {
+    const isAudio = isAudioFirstFile(file);
+    showToast(isAudio ? 'Fichier déjà audio.' : 'Conversion audio en cours… laisse l’app ouverte.', true);
+    const audio = await convertMediaToAudio(file);
+    state.convertedAudioFile = audio;
+    renderConvertedAudioPreview(audio);
+    hideToastInstant();
+    const mb = (audio.size / 1024 / 1024).toFixed(1);
+    const message = isAudio
+      ? `Ce fichier est déjà un audio (${mb} Mo). Tu peux passer à Texte.`
+      : `Audio prêt (${mb} Mo). Tu peux maintenant passer à Texte.`;
+    setConversionStatus(message, audio.size > GROQ_FILE_LIMIT);
+    showToast(audio.size > GROQ_FILE_LIMIT ? 'Audio créé, mais encore trop lourd pour Groq.' : 'Audio prêt pour transcription.');
+  } catch (error) {
+    hideToastInstant();
+    setConversionStatus(error.message, true);
+    showToast('Conversion audio impossible.');
+  } finally {
+    state.isConverting = false;
+    setButtonBusy(els.convertAudioBtn, false, 'Conversion…', 'Convertir en audio');
+    updateConversionSource();
+  }
+}
+
+function useConvertedAudioForTranscription() {
+  if (!state.convertedAudioFile) {
+    showToast('Convertis d’abord un audio.');
+    return;
+  }
+  state.selectedFile = state.convertedAudioFile;
+  els.fileLabel.textContent = `${state.convertedAudioFile.name} — audio prêt pour transcription`;
+  renderMediaPreview(state.convertedAudioFile, state.convertedAudioFile.type, state.convertedAudioFile.name);
+  setFileStatus('Audio converti utilisé pour la transcription. Appuie sur Enregistrer pour le garder dans la fiche.');
+  updateConversionSource();
+  activateTab('transcript');
+  showToast('Audio envoyé vers la partie Texte.');
+}
+
+function downloadConvertedAudio() {
+  if (!state.convertedAudioFile) {
+    showToast('Aucun audio converti à télécharger.');
+    return;
+  }
+  const url = URL.createObjectURL(state.convertedAudioFile);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = state.convertedAudioFile.name || 'coursmemo-audio.webm';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 function renderMediaPreview(blob, type, name) {
   resetMediaPreview();
   if (!blob) return;
@@ -240,16 +420,16 @@ function renderMediaPreview(blob, type, name) {
   if (player) {
     player.src = state.mediaUrl;
     player.addEventListener('loadedmetadata', () => {
-      setFileStatus('Fichier ajouté localement. Appuie sur “Enregistrer” pour le garder dans cette fiche.');
+      setFileStatus(largeVideoAdvice({ size: blob.size || 0, type, name }));
     });
     player.addEventListener('error', () => {
-      setFileStatus('Le fichier est ajouté, mais ce navigateur ne sait pas lire son aperçu. Essaie un MP4 H.264/AAC, un MP3 ou enregistre quand même la fiche.', true);
+      setFileStatus('Le fichier est ajouté, mais ce navigateur ne sait pas lire son aperçu. Pour transcrire, utilise de préférence un MP3/M4A ou une vidéo plus courte.', true);
     });
   }
 
   window.setTimeout(() => {
     if (!els.fileStatus || !els.fileStatus.hidden) return;
-    setFileStatus('Fichier ajouté localement. Appuie sur “Enregistrer” pour le garder dans cette fiche.');
+    setFileStatus(largeVideoAdvice({ size: blob.size || 0, type, name }));
   }, 900);
 }
 
@@ -267,6 +447,7 @@ async function loadCourse(id) {
   if (!course) return;
   state.currentId = id;
   state.selectedFile = null;
+  resetConvertedAudio();
   els.editorTitle.textContent = course.title || 'Cours sans titre';
   els.titleInput.value = course.title || '';
 
@@ -294,6 +475,7 @@ async function loadCourse(id) {
     }
   }
   updateThemeHelper();
+  updateConversionSource();
   render();
   activateTab('editor');
 }
@@ -301,6 +483,7 @@ async function loadCourse(id) {
 function newCourse() {
   state.currentId = null;
   state.selectedFile = null;
+  resetConvertedAudio();
   els.editorTitle.textContent = 'Nouveau cours';
   els.form.reset();
   els.dateInput.value = today();
@@ -310,6 +493,7 @@ function newCourse() {
   if (els.mediaInput) els.mediaInput.value = '';
   resetMediaPreview();
   updateThemeHelper();
+  updateConversionSource();
   render();
   activateTab('editor');
   window.setTimeout(() => els.titleInput.focus({ preventScroll: true }), 350);
@@ -440,6 +624,7 @@ function renderStats() {
 }
 
 function render() {
+  updateConversionSource();
   renderStats();
   renderThemes();
   renderList();
@@ -531,15 +716,48 @@ function mediaToFile(media) {
   });
 }
 
-async function getCurrentMediaFile() {
+async function getCurrentRawMediaFile() {
   if (state.selectedFile) return state.selectedFile;
   if (!state.currentId) return null;
   const media = await getMedia(state.currentId).catch(() => null);
   return mediaToFile(media);
 }
 
+async function getCurrentMediaFile() {
+  if (state.convertedAudioFile) return state.convertedAudioFile;
+  return getCurrentRawMediaFile();
+}
+
 function cleanBaseName(name) {
   return (name || 'coursmemo-audio').replace(/\.[^.]+$/, '').replace(/[^a-z0-9_-]+/gi, '-').slice(0, 64) || 'coursmemo-audio';
+}
+
+
+function getFileExtension(name) {
+  const match = String(name || '').toLowerCase().match(/\.([a-z0-9]+)$/);
+  return match ? match[1] : '';
+}
+
+function isAudioFirstFile(file) {
+  const ext = getFileExtension(file?.name);
+  return Boolean(file?.type?.startsWith('audio/')) || AUDIO_FIRST_EXTENSIONS.includes(ext);
+}
+
+function largeVideoAdvice(file) {
+  if (!file) return '';
+  const mb = file.size / 1024 / 1024;
+  if (file.type?.startsWith('video/') && mb > 180) {
+    return 'Vidéo très volumineuse : pour une transcription fiable, convertis d’abord la vidéo en MP3/M4A ou coupe-la en morceaux courts. La fiche peut quand même être enregistrée.';
+  }
+  if (file.type?.startsWith('video/') && mb > 25) {
+    return 'Vidéo au-dessus de 25 Mo : l’app tentera d’extraire l’audio. Si ça échoue, importe plutôt un MP3/M4A.';
+  }
+  return 'Fichier ajouté localement. Appuie sur “Enregistrer” pour le garder dans cette fiche.';
+}
+
+function buildAudioSafeError(errors) {
+  const details = errors.length ? ` Détail technique : ${errors.join(' / ')}` : '';
+  return `Cette vidéo ne peut pas être transcrite directement depuis le navigateur. Sur Android, certaines vidéos volumineuses ou pistes AAC ne peuvent pas être décodées par Chrome. Solution fiable : convertis cette vidéo en MP3/M4A, ou coupe-la en extraits courts, puis importe l’audio dans CoursMemo AI.${details}`;
 }
 
 async function prepareFileForGroq(file) {
@@ -549,7 +767,16 @@ async function prepareFileForGroq(file) {
     return file;
   }
 
-  showToast('Gros fichier : extraction audio compressée en cours… Laisse l’app ouverte.', true);
+  if (isAudioFirstFile(file)) {
+    const mb = (file.size / 1024 / 1024).toFixed(1);
+    throw new Error(`Ce fichier audio fait ${mb} Mo, au-dessus de la limite d’envoi de 25 Mo. Coupe-le en plusieurs parties plus courtes avant transcription.`);
+  }
+
+  if (file.type.startsWith('video/') && file.size > VERY_LARGE_VIDEO_LIMIT) {
+    showToast('Vidéo très lourde : tentative audio courte… Si ça échoue, convertis en MP3/M4A.', true);
+  } else {
+    showToast('Gros fichier : extraction audio compressée en cours… Laisse l’app ouverte.', true);
+  }
 
   let extractedAudio = null;
   const errors = [];
@@ -577,8 +804,7 @@ async function prepareFileForGroq(file) {
   }
 
   if (!extractedAudio) {
-    const detail = errors.length ? ` Détail : ${errors.join(' / ')}` : '';
-    throw new Error(`Impossible d’extraire l’audio de cette vidéo volumineuse. Essaie une vidéo plus courte, ou convertis-la en MP3/M4A avant import.${detail}`);
+    throw new Error(buildAudioSafeError(errors));
   }
 
   if (extractedAudio.size > GROQ_FILE_LIMIT) {
@@ -1110,6 +1336,9 @@ function bindEvents() {
   els.transcribeBtn.addEventListener('click', startTranscription);
   els.summaryBtn.addEventListener('click', summarizeCourse);
   els.exportTxtBtn.addEventListener('click', exportTxt);
+  els.convertAudioBtn?.addEventListener('click', convertCurrentMedia);
+  els.useConvertedAudioBtn?.addEventListener('click', useConvertedAudioForTranscription);
+  els.downloadAudioBtn?.addEventListener('click', downloadConvertedAudio);
   els.settingsBtn.addEventListener('click', openSettings);
   els.closeSettings.addEventListener('click', closeSettings);
   els.saveGroqKeyBtn.addEventListener('click', saveGroqKey);
@@ -1120,10 +1349,13 @@ function bindEvents() {
     const file = event.target.files?.[0];
     if (!file) return;
     state.selectedFile = file;
+    resetConvertedAudio();
     const sizeMb = (file.size / 1024 / 1024).toFixed(1);
     els.fileLabel.textContent = `${file.name} — ${sizeMb} Mo`;
     renderMediaPreview(file, file.type, file.name);
-    showToast('Fichier ajouté. Appuie sur Enregistrer pour le garder.');
+    const advice = largeVideoAdvice(file);
+    setFileStatus(advice, file.size > GROQ_FILE_LIMIT && file.type.startsWith('video/'));
+    showToast(file.size > GROQ_FILE_LIMIT && file.type.startsWith('video/') ? 'Vidéo ajoutée. Pour transcrire, l’audio sera extrait si possible.' : 'Fichier ajouté. Appuie sur Enregistrer pour le garder.');
   });
 
   $$('[data-premium]').forEach((btn) => btn.addEventListener('click', openPremium));
@@ -1176,6 +1408,7 @@ function hydrateFirstCourse() {
   els.notesInput.value = first.notes || '';
   els.fileLabel.textContent = first.fileName ? `${first.fileName} — fichier déjà enregistré` : 'Choisis un fichier. Il reste sur ton appareil.';
   updateThemeHelper();
+  updateConversionSource();
 }
 
 function init() {

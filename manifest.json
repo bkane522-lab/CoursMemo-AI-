@@ -1,7 +1,7 @@
 {
   "name": "CoursMemo AI",
   "short_name": "CoursMemo",
-  "description": "CoursMemo AI classe tes cours, importe tes médias, transcrit avec Groq et génère des résumés utiles.",
+  "description": "CoursMemo AI classe tes cours, convertit en audio quand possible, transcrit avec Groq et génère des résumés utiles.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

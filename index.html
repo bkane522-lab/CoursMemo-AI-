@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#07111f" />
   <meta name="description" content="CoursMemo AI transforme tes cours audio/vidéo en transcriptions, notes classées et fiches prêtes à réviser." />
-  <title>CoursMemo AI — V1.5.1.1 Groq IA</title>
+  <title>CoursMemo AI — V1.6 Audio + Transcription</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -30,9 +30,9 @@
 
       <section class="hero-card app-feel-card">
         <div>
-          <p class="pill">V1.5.1.1 · IA + gros fichiers</p>
+          <p class="pill">Gratuit · Audio + transcription</p>
           <h2>Notes claires pour tes cours.</h2>
-          <p>Importe une vidéo ou un audio, transcris avec ta clé Groq, génère un résumé et exporte tes notes en TXT. La fiche PDF reste prévue pour Premium.</p>
+          <p>Ajoute ton cours, convertis la vidéo en audio quand c’est possible, puis transcris avec ta clé Groq. Résumé IA et export TXT restent disponibles.</p>
         </div>
         <div class="hero-actions">
           <button class="primary-btn hero-new" id="heroNewBtn" type="button">+ Nouveau cours</button>
@@ -52,6 +52,8 @@
       <nav class="section-tabs" aria-label="Sections de l'application">
         <button class="tab-btn active" data-tab="library" type="button">Cours</button>
         <button class="tab-btn" data-tab="editor" type="button">Fiche</button>
+        <button class="tab-btn" data-tab="audio" type="button">Audio</button>
+        <button class="tab-btn" data-tab="transcript" type="button">Texte</button>
         <button class="tab-btn premium-tab" data-tab="premium" type="button">Premium</button>
       </nav>
 
@@ -112,28 +114,13 @@
               <span class="file-icon">🎧</span>
               <span>
                 <strong>Ajouter audio / vidéo</strong>
-                <small id="fileLabel">Choisis un fichier. Il reste sur ton appareil jusqu’à la transcription.</small>
+                <small id="fileLabel">Choisis un fichier. Il reste sur ton appareil.</small>
               </span>
               <input id="mediaInput" type="file" accept="audio/*,video/*" />
             </label>
 
             <div id="mediaPreview" class="media-preview" hidden></div>
             <div id="fileStatus" class="file-status" hidden></div>
-
-            <label>
-              Transcription
-              <textarea id="transcriptInput" rows="5" placeholder="Colle ici la transcription du cours, ou utilise la dictée micro si disponible."></textarea>
-            </label>
-
-            <label>
-              Résumé IA
-              <textarea id="summaryInput" rows="4" placeholder="Après transcription, appuie sur “Résumé IA” pour générer une fiche claire : points clés, corrections, objectifs."></textarea>
-            </label>
-
-            <label>
-              Notes personnelles
-              <textarea id="notesInput" rows="4" placeholder="Corrections, mouvements à revoir, objectifs du prochain cours..."></textarea>
-            </label>
 
             <details class="more-details">
               <summary>Options facultatives : date, prof, thème perso</summary>
@@ -155,32 +142,90 @@
               </div>
             </details>
 
-            <div class="editor-tools action-grid">
-              <button type="button" class="primary-btn" id="transcribeBtn">Transcrire</button>
-              <button type="button" class="premium-btn" id="summaryBtn">Résumé IA</button>
-              <button type="button" class="secondary-btn" id="speechBtn">Dictée</button>
-              <button type="button" class="secondary-btn" id="exportTxtBtn">TXT</button>
-            </div>
-
-            <div class="dance-helper" id="themeHelper">
-              <strong>Mode danse :</strong> note les corrections du prof, mouvements à revoir, musicalité et objectif du prochain cours.
-            </div>
-
-            <div class="mini-premium-box">
-              <div class="mini-premium-copy">
-                <strong>Premium</strong>
-                <span>Fiche PDF, export complet et suivi avancé bientôt disponibles.</span>
+            <div class="workflow-card">
+              <p class="eyebrow">Étapes</p>
+              <div class="workflow-steps">
+                <button type="button" class="workflow-step" data-tab="audio"><strong>1</strong><span>Convertir en audio</span></button>
+                <button type="button" class="workflow-step" data-tab="transcript"><strong>2</strong><span>Transcrire & résumer</span></button>
               </div>
-              <button type="button" class="premium-link" data-tab="premium">Voir</button>
+              <p>Pour les grosses vidéos Android, commence par l’onglet Audio. Si la conversion échoue, importe directement un MP3/M4A.</p>
             </div>
           </form>
+        </section>
+
+        <section class="panel audio-panel app-screen" data-screen="audio">
+          <div class="panel-title-row editor-heading">
+            <div>
+              <p class="eyebrow">Conversion audio</p>
+              <h2>Convertir la vidéo en audio</h2>
+            </div>
+          </div>
+
+          <div class="audio-converter-card">
+            <p>Cette partie sert à extraire l’audio d’une vidéo avant la transcription. L’audio extrait peut ensuite être utilisé directement par l’onglet Texte.</p>
+            <div id="conversionSource" class="file-status">Aucun média sélectionné. Ajoute une vidéo ou un audio dans l’onglet Fiche.</div>
+            <div class="editor-tools audio-actions">
+              <button type="button" class="primary-btn" id="convertAudioBtn">Convertir en audio</button>
+              <button type="button" class="secondary-btn" id="useConvertedAudioBtn" disabled>Utiliser pour transcription</button>
+              <button type="button" class="secondary-btn" id="downloadAudioBtn" disabled>Télécharger audio</button>
+            </div>
+            <div id="conversionStatus" class="file-status" hidden></div>
+            <div id="convertedAudioPreview" class="media-preview" hidden></div>
+          </div>
+
+          <div class="dance-helper">
+            <strong>Conseil :</strong> si ton fichier est une très grosse vidéo et que Chrome Android refuse la piste audio, convertis-la hors de l’app en MP3/M4A, puis importe l’audio dans la fiche.
+          </div>
+        </section>
+
+        <section class="panel transcript-panel app-screen" data-screen="transcript">
+          <div class="panel-title-row editor-heading">
+            <div>
+              <p class="eyebrow">Transcription</p>
+              <h2>Transcrire et résumer</h2>
+            </div>
+          </div>
+
+          <div class="editor-tools action-grid transcript-actions">
+            <button type="button" class="primary-btn" id="transcribeBtn">Transcrire</button>
+            <button type="button" class="premium-btn" id="summaryBtn">Résumé IA</button>
+            <button type="button" class="secondary-btn" id="speechBtn">Dictée</button>
+            <button type="button" class="secondary-btn" id="exportTxtBtn">TXT</button>
+          </div>
+
+          <label>
+            Transcription
+            <textarea id="transcriptInput" rows="5" placeholder="Colle ici la transcription du cours, ou utilise la dictée micro si disponible."></textarea>
+          </label>
+
+          <label>
+            Résumé IA
+            <textarea id="summaryInput" rows="4" placeholder="Après transcription, appuie sur “Résumé IA” pour générer une fiche claire : points clés, corrections, objectifs."></textarea>
+          </label>
+
+          <label>
+            Notes personnelles
+            <textarea id="notesInput" rows="4" placeholder="Corrections, mouvements à revoir, objectifs du prochain cours..."></textarea>
+          </label>
+
+          <div class="dance-helper" id="themeHelper">
+            <strong>Mode danse :</strong> note les corrections du prof, mouvements à revoir, musicalité et objectif du prochain cours.
+          </div>
+
+          <div class="mini-premium-box">
+            <div class="mini-premium-copy">
+              <strong>Premium</strong>
+              <span>Fiche PDF, export complet et suivi avancé bientôt disponibles.</span>
+            </div>
+            <button type="button" class="premium-link" data-tab="premium">Voir</button>
+          </div>
         </section>
       </section>
 
       <section class="panel premium-panel app-screen" data-screen="premium">
         <p class="eyebrow">Premium bientôt</p>
         <h2>Va plus loin avec tes fiches de cours.</h2>
-        <p class="premium-lead">La V1.5.1.1 permet déjà la transcription et le résumé avec ta clé Groq. Premium ajoutera les fiches PDF, l’export avancé et le suivi de progression.</p>
+        <p class="premium-lead">La V1.6 sépare clairement le workflow : fiche du cours, conversion audio, puis transcription/résumé. Pour les vidéos très lourdes, l’import audio MP3/M4A reste la méthode la plus fiable. Premium ajoutera les fiches PDF, l’export avancé et le suivi de progression.</p>
 
         <div class="premium-grid">
           <article>
@@ -213,10 +258,10 @@
       <h2>Ton carnet de cours intelligent.</h2>
       <div class="steps">
         <article><strong>1</strong><span>Crée un cours</span></article>
-        <article><strong>2</strong><span>Ajoute audio, transcription ou notes</span></article>
-        <article><strong>3</strong><span>Classe par thème et révise</span></article>
+        <article><strong>2</strong><span>Convertis en audio si besoin</span></article>
+        <article><strong>3</strong><span>Transcris, résume et révise</span></article>
       </div>
-      <p class="modal-small">Utilise ta clé Groq pour transcrire et résumer. La fiche PDF sera ajoutée plus tard dans Premium.</p>
+      <p class="modal-small">Ajoute ton média, passe par Audio si c’est une vidéo lourde, puis utilise Texte pour transcrire et résumer.</p>
       <button class="primary-btn" id="startOnboardingBtn">Commencer</button>
     </div>
   </dialog>

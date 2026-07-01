@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coursmemo-ai-v1.5-groq-ai';
+const CACHE_NAME = 'coursmemo-ai-v1.6-audio-transcription';
 const ASSETS = [
   './',
   './index.html',
