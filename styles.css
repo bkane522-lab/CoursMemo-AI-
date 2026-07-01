@@ -740,3 +740,38 @@ select,
     width: 100%;
   }
 }
+
+/* V1.5 — Groq IA */
+.top-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.settings-btn,
+.install-btn { white-space: nowrap; }
+.settings-field {
+  margin: 12px 0;
+  color: #dbe7f6;
+  font-weight: 850;
+}
+.security-note {
+  border: 1px solid rgba(255, 209, 102, 0.24);
+  background: rgba(255, 209, 102, 0.08);
+  border-radius: 15px;
+  padding: 10px 12px;
+}
+.ai-busy {
+  opacity: 0.75;
+  pointer-events: none;
+}
+@media (max-width: 620px) {
+  .topbar { align-items: center; }
+  .top-actions { gap: 6px; }
+  .top-actions button { min-height: 36px; padding: 8px 10px; font-size: 0.78rem; }
+}
+@media (max-width: 380px) {
+  .topbar { grid-template-columns: 1fr; }
+  .top-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .top-actions button { width: 100%; }
+}

@@ -1,7 +1,7 @@
 {
   "name": "CoursMemo AI",
   "short_name": "CoursMemo",
-  "description": "CoursMemo AI classe tes cours, garde tes transcriptions et prépare le résumé IA et les fiches PDF Premium.",
+  "description": "CoursMemo AI classe tes cours, importe tes médias, transcrit avec Groq et génère des résumés utiles.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

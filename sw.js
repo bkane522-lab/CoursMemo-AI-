@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coursmemo-ai-v1.4.3-import-fix';
+const CACHE_NAME = 'coursmemo-ai-v1.5-groq-ai';
 const ASSETS = [
   './',
   './index.html',

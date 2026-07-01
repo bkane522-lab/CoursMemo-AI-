@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#07111f" />
   <meta name="description" content="CoursMemo AI transforme tes cours audio/vidéo en transcriptions, notes classées et fiches prêtes à réviser." />
-  <title>CoursMemo AI — V1.4.3 Import Fix</title>
+  <title>CoursMemo AI — V1.5 Groq IA</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -22,14 +22,17 @@
             <h1>Classe. Transcris. Révise.</h1>
           </div>
         </div>
-        <button class="ghost-btn install-btn" id="installBtn" type="button">Installer</button>
+        <div class="top-actions">
+          <button class="ghost-btn settings-btn" id="settingsBtn" type="button">Clé IA</button>
+          <button class="ghost-btn install-btn" id="installBtn" type="button">Installer</button>
+        </div>
       </nav>
 
       <section class="hero-card app-feel-card">
         <div>
-          <p class="pill">Gratuit · Notes & import local</p>
+          <p class="pill">V1.5 · Transcription IA Groq</p>
           <h2>Notes claires pour tes cours.</h2>
-          <p>Classe tes cours, garde tes transcriptions et exporte tes notes en TXT. Le résumé IA et la fiche PDF seront disponibles dans Premium.</p>
+          <p>Importe une vidéo ou un audio, transcris avec ta clé Groq, génère un résumé et exporte tes notes en TXT. La fiche PDF reste prévue pour Premium.</p>
         </div>
         <div class="hero-actions">
           <button class="primary-btn hero-new" id="heroNewBtn" type="button">+ Nouveau cours</button>
@@ -43,7 +46,7 @@
 
     <main>
       <section class="notice consent-box">
-        <span>Important :</span> enregistre seulement avec autorisation. Tes données restent stockées localement sur ton appareil.
+        <span>Important :</span> enregistre seulement avec autorisation. Tes cours restent stockés sur ton appareil. Pour transcrire ou résumer, le média ou le texte est envoyé directement à Groq avec ta clé API.
       </section>
 
       <nav class="section-tabs" aria-label="Sections de l'application">
@@ -109,7 +112,7 @@
               <span class="file-icon">🎧</span>
               <span>
                 <strong>Ajouter audio / vidéo</strong>
-                <small id="fileLabel">Choisis un fichier. Il reste sur ton appareil.</small>
+                <small id="fileLabel">Choisis un fichier. Il reste sur ton appareil jusqu’à la transcription.</small>
               </span>
               <input id="mediaInput" type="file" accept="audio/*,video/*" />
             </label>
@@ -120,6 +123,11 @@
             <label>
               Transcription
               <textarea id="transcriptInput" rows="5" placeholder="Colle ici la transcription du cours, ou utilise la dictée micro si disponible."></textarea>
+            </label>
+
+            <label>
+              Résumé IA
+              <textarea id="summaryInput" rows="4" placeholder="Après transcription, appuie sur “Résumé IA” pour générer une fiche claire : points clés, corrections, objectifs."></textarea>
             </label>
 
             <label>
@@ -148,10 +156,10 @@
             </details>
 
             <div class="editor-tools action-grid">
+              <button type="button" class="primary-btn" id="transcribeBtn">Transcrire</button>
+              <button type="button" class="premium-btn" id="summaryBtn">Résumé IA</button>
               <button type="button" class="secondary-btn" id="speechBtn">Dictée</button>
-              <button type="button" class="secondary-btn" id="exportTxtBtn">Export TXT</button>
-              <button type="button" class="premium-btn" data-premium="summary">Résumé IA</button>
-              <button type="button" class="premium-btn" data-premium="pdf">PDF</button>
+              <button type="button" class="secondary-btn" id="exportTxtBtn">TXT</button>
             </div>
 
             <div class="dance-helper" id="themeHelper">
@@ -161,7 +169,7 @@
             <div class="mini-premium-box">
               <div class="mini-premium-copy">
                 <strong>Premium</strong>
-                <span>Résumé IA et fiche PDF bientôt disponibles.</span>
+                <span>Fiche PDF, export complet et suivi avancé bientôt disponibles.</span>
               </div>
               <button type="button" class="premium-link" data-tab="premium">Voir</button>
             </div>
@@ -171,21 +179,21 @@
 
       <section class="panel premium-panel app-screen" data-screen="premium">
         <p class="eyebrow">Premium bientôt</p>
-        <h2>Transforme ton cours en fiche prête à réviser.</h2>
-        <p class="premium-lead">La base gratuite garde l’essentiel : transcription, classement, notes et export TXT. Premium transformera chaque cours en fiche prête à relire.</p>
+        <h2>Va plus loin avec tes fiches de cours.</h2>
+        <p class="premium-lead">La V1.5 permet déjà la transcription et le résumé avec ta clé Groq. Premium ajoutera les fiches PDF, l’export avancé et le suivi de progression.</p>
 
         <div class="premium-grid">
-          <article>
-            <strong>Résumé IA</strong>
-            <span>Le cours résumé en quelques points clairs.</span>
-          </article>
           <article>
             <strong>Fiche PDF</strong>
             <span>Une fiche propre à relire avant le prochain cours.</span>
           </article>
           <article>
-            <strong>Points clés</strong>
-            <span>Corrections, exercices et objectifs à revoir.</span>
+            <strong>Export complet</strong>
+            <span>Sauvegarde de toutes tes fiches en un seul fichier.</span>
+          </article>
+          <article>
+            <strong>Points clés avancés</strong>
+            <span>Corrections, exercices et objectifs mieux structurés.</span>
           </article>
           <article>
             <strong>Suivi avancé</strong>
@@ -208,7 +216,7 @@
         <article><strong>2</strong><span>Ajoute audio, transcription ou notes</span></article>
         <article><strong>3</strong><span>Classe par thème et révise</span></article>
       </div>
-      <p class="modal-small">Le résumé IA et la fiche PDF seront disponibles plus tard dans Premium avec un backend sécurisé.</p>
+      <p class="modal-small">Utilise ta clé Groq pour transcrire et résumer. La fiche PDF sera ajoutée plus tard dans Premium.</p>
       <button class="primary-btn" id="startOnboardingBtn">Commencer</button>
     </div>
   </dialog>
@@ -217,18 +225,33 @@
     <div class="modal-card">
       <button class="close-btn" id="closePremium" aria-label="Fermer">×</button>
       <p class="pill">CoursMemo AI Premium</p>
-      <h2>Premium bientôt disponible avec un backend sécurisé.</h2>
+      <h2>Premium ajoutera les fiches PDF et le suivi avancé.</h2>
       <p>
-        Résumé intelligent, fiche PDF, points clés, corrections du prof, objectifs du prochain cours,
+        Fiche PDF, export complet, points clés avancés, corrections du prof, objectifs du prochain cours,
         traduction et historique avancé.
       </p>
       <ul>
-        <li>Résumé IA automatique du cours</li>
         <li>Fiche de révision PDF prête à relire</li>
+        <li>Export complet de tes cours</li>
         <li>Classement avancé par thème, date et prof</li>
         <li>Suivi des points à revoir et de la progression</li>
       </ul>
       <button class="primary-btn" id="premiumOkBtn">Compris</button>
+    </div>
+  </dialog>
+
+  <dialog id="settingsDialog" class="modal">
+    <div class="modal-card">
+      <button class="close-btn" id="closeSettings" aria-label="Fermer">×</button>
+      <p class="pill">Clé IA Groq</p>
+      <h2>Active la transcription et le résumé IA.</h2>
+      <p>Colle ta clé API Groq. Elle reste stockée localement sur ton appareil. Quand tu transcris ou résumes, l’app appelle directement Groq depuis ton navigateur.</p>
+      <label class="settings-field">
+        Clé API
+        <input id="groqKeyInput" type="password" placeholder="gsk_..." autocomplete="off" />
+      </label>
+      <p class="modal-small security-note">Garde cette app privée si tu utilises une clé dans le navigateur. Pour une app publique, il faudra passer par un backend sécurisé.</p>
+      <button class="primary-btn" id="saveGroqKeyBtn" type="button">Enregistrer la clé</button>
     </div>
   </dialog>
 
